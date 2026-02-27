@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Loader2 } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Book } from '../types';
@@ -9,7 +9,7 @@ import { Loader } from './Loader';
 interface SearchBoxProps {
   value: string;
   onChange: (value: string) => void;
-  onSearch: (query: string) => void;
+  onSearch: (query: string) => void | Promise<void>;
   placeholder?: string;
   showSuggestions?: boolean;
   onSuggestionClick?: (book: Book) => void;
@@ -25,6 +25,7 @@ export function SearchBox({
 }: SearchBoxProps) {
   const [suggestions, setSuggestions] = useState<Book[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -75,10 +76,15 @@ export function SearchBox({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowDropdown(false);
-    onSearch(value);
+    setIsSubmitting(true);
+    try {
+      await Promise.resolve(onSearch(value));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClear = () => {
@@ -124,8 +130,16 @@ export function SearchBox({
               variant="secondary"
               size="sm"
               className="h-7 px-2"
+              disabled={isSubmitting}
             >
-              Buscar
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                  Buscando...
+                </>
+              ) : (
+                'Buscar'
+              )}
             </Button>
           </div>
         )}

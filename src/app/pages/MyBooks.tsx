@@ -4,7 +4,7 @@ import { PageHeader } from '../components/PageHeader';
 import { BookCard } from '../components/BookCard';
 import { StatusSelect, StatusBadge } from '../components/StatusSelect';
 import { EmptyState } from '../components/EmptyState';
-import { BookMarked, Plus, Trash2 } from 'lucide-react';
+import { BookMarked, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useLibrary } from '../context/LibraryContext';
 import { BookStatus } from '../types';
 import { Button } from '../components/ui/button';
@@ -30,6 +30,8 @@ export function MyBooks() {
 
   const [filter, setFilter] = useState<FilterStatus>('ALL');
   const [bookToDelete, setBookToDelete] = useState<string | null>(null);
+  const [isUpdatingBookId, setIsUpdatingBookId] = useState<string | null>(null);
+  const [isDeletingBook, setIsDeletingBook] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -86,22 +88,27 @@ export function MyBooks() {
       : userBooks.filter((book) => book.status === filter);
 
   const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
+    setIsUpdatingBookId(bookId);
     try {
       await updateBookStatus(bookId, newStatus);
       toast.success('Estado actualizado');
     } catch {
       toast.error('No se pudo actualizar el estado.');
+    } finally {
+      setIsUpdatingBookId(null);
     }
   };
 
   const handleDeleteBook = async () => {
     if (bookToDelete) {
+      setIsDeletingBook(true);
       try {
         await removeBook(bookToDelete);
         toast.success('Libro eliminado de tu lista');
       } catch {
         toast.error('No se pudo eliminar el libro.');
       } finally {
+        setIsDeletingBook(false);
         setBookToDelete(null);
       }
     }
@@ -249,9 +256,11 @@ export function MyBooks() {
                 <BookCard
                   key={book.id}
                   variant={cardVariant}
-                  menuTriggerIcon={<Trash2 className="h-4 w-4 text-destructive" />}
+                  menuTriggerIcon={isDeletingBook && bookToDelete === book.id ? <Loader2 className="h-4 w-4 animate-spin text-destructive" /> : <Trash2 className="h-4 w-4 text-destructive" />}
                   menuTriggerLabel="Eliminar libro"
                   menuTriggerClassName="text-destructive hover:bg-destructive/10"
+                  onMenuTriggerClick={() => setBookToDelete(book.id)}
+                  menuTriggerDisabled={isDeletingBook}
                   book={book}
                   badge={<StatusBadge status={book.status} />}
                   actions={
@@ -261,11 +270,13 @@ export function MyBooks() {
                         onChange={(newStatus) =>
                           handleStatusChange(book.id, newStatus)
                         }
+                        disabled={isUpdatingBookId === book.id || isDeletingBook}
                       />
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => setBookToDelete(book.id)}
+                        disabled={isDeletingBook}
                         className="w-full"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
@@ -293,9 +304,16 @@ export function MyBooks() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteBook}>
-              Eliminar
+            <AlertDialogCancel disabled={isDeletingBook}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteBook} disabled={isDeletingBook}>
+              {isDeletingBook ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                'Eliminar'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

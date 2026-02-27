@@ -9,25 +9,32 @@ interface BookCardProps {
   book: Book;
   actions?: ReactNode;
   badge?: ReactNode;
+  coverOverlay?: ReactNode;
   onClick?: () => void;
   variant?: 'grid' | 'list';
   menuTriggerIcon?: ReactNode;
   menuTriggerLabel?: string;
   menuTriggerClassName?: string;
+  onMenuTriggerClick?: () => void;
+  menuTriggerDisabled?: boolean;
 }
 
 export function BookCard({
   book,
   actions,
   badge,
+  coverOverlay,
   onClick,
   variant = 'grid',
   menuTriggerIcon,
   menuTriggerLabel,
-  menuTriggerClassName
+  menuTriggerClassName,
+  onMenuTriggerClick,
+  menuTriggerDisabled
 }: BookCardProps) {
   const isList = variant === 'list';
-  const showMenu = isList && Boolean(actions);
+  const showQuickAction = isList && Boolean(menuTriggerIcon) && Boolean(onMenuTriggerClick);
+  const showMenu = isList && Boolean(actions) && !showQuickAction;
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerIcon = menuTriggerIcon ?? <MoreHorizontal className="h-4 w-4" />;
   const triggerLabel = menuTriggerLabel ?? 'Abrir acciones';
@@ -63,11 +70,33 @@ export function BookCard({
               {badge}
             </div>
           )}
+          {coverOverlay && (
+            <div className="absolute bottom-2 left-2 right-2 z-10">
+              {coverOverlay}
+            </div>
+          )}
         </div>
         <div className={isList ? 'flex min-w-0 flex-1 flex-col overflow-hidden' : ''}>
           <CardContent className={isList ? 'flex-1 overflow-hidden p-4 py-3' : 'p-4'}>
             <div className={isList ? 'flex items-start justify-between gap-3' : ''}>
               <h3 className="line-clamp-2 text-base">{book.title}</h3>
+              {showQuickAction && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={triggerClassName}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onMenuTriggerClick?.();
+                  }}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  aria-label={triggerLabel}
+                  disabled={menuTriggerDisabled}
+                >
+                  {triggerIcon}
+                </Button>
+              )}
               {showMenu && (
                 <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                   <DropdownMenuTrigger asChild>
@@ -79,6 +108,7 @@ export function BookCard({
                       onClick={(event) => event.stopPropagation()}
                       onPointerDown={(event) => event.stopPropagation()}
                       aria-label={triggerLabel}
+                      disabled={menuTriggerDisabled}
                     >
                       {triggerIcon}
                     </Button>

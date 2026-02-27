@@ -6,12 +6,13 @@ import { StatusSelect } from '../components/StatusSelect';
 import { Loader } from '../components/Loader';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, ChevronDown, Loader2 } from 'lucide-react';
 import { Book, BookStatus } from '../types';
 import { searchBooks } from '@/api/services/booksService';
 import { useLibrary } from '../context/LibraryContext';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 
 export function SearchBooks() {
   type ViewMode = 'list' | 'grid-1' | 'grid-2' | 'grid-4';
@@ -42,7 +43,12 @@ export function SearchBooks() {
     return window.innerWidth >= 1024 ? 'grid-4' : 'grid-1';
   });
 
-  const { addBook, userBooks } = useLibrary();
+  const { addBook, updateBookStatus, userBooks } = useLibrary();
+
+  const statuses: BookStatus[] = ['TO_READ', 'FAVORITE', 'READ'];
+
+  const statusLabel = (status: BookStatus) =>
+    status === 'FAVORITE' ? 'Favorito' : status === 'TO_READ' ? 'Por leer' : 'Leído';
 
   useEffect(() => {
     const desktopMql = window.matchMedia('(min-width: 1024px)');
@@ -127,8 +133,38 @@ export function SearchBooks() {
     }
   };
 
-  const isBookInLibrary = (book: Book) => {
-    return userBooks.some((savedBook) => {
+  const handleChangeSavedStatus = async (book: Book, status: BookStatus) => {
+    const savedBook = userBooks.find((item) => {
+      if (book.externalId && item.externalId) {
+        return item.externalId === book.externalId;
+      }
+
+      return item.id === book.id;
+    });
+
+    if (!savedBook) {
+      await handleAddBook(book, status);
+      return;
+    }
+
+    if (savedBook.status === status) {
+      return;
+    }
+
+    setIsSavingBookId(book.id);
+
+    try {
+      await updateBookStatus(savedBook.id, status);
+      toast.success(`Estado actualizado a ${statusLabel(status).toLowerCase()}`);
+    } catch {
+      toast.error('No se pudo actualizar el estado del libro.');
+    } finally {
+      setIsSavingBookId(null);
+    }
+  };
+
+  const getSavedBook = (book: Book) => {
+    return userBooks.find((savedBook) => {
       if (book.externalId && savedBook.externalId) {
         return savedBook.externalId === book.externalId;
       }
@@ -234,15 +270,22 @@ export function SearchBooks() {
             </div>
             <div className={listClassName}>
               {results.map((book) => {
-                const inLibrary = isBookInLibrary(book);
-                const status = selectedStatuses[book.id] || 'FAVORITE';
+                const savedBook = getSavedBook(book);
+                const inLibrary = Boolean(savedBook);
+                const selectedStatus = selectedStatuses[book.id] || 'FAVORITE';
+                const currentStatus = savedBook?.status ?? selectedStatus;
+                const isSaving = isSavingBookId === book.id;
 
                 return (
                   <BookCard
                     key={book.id}
                     variant={cardVariant}
-                    menuTriggerIcon={!inLibrary ? <Plus className="h-4 w-4" /> : undefined}
-                    menuTriggerLabel={inLibrary ? 'Abrir acciones' : 'Agregar a favoritos'}
+                    menuTriggerIcon={!inLibrary ? (isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />) : undefined}
+                    menuTriggerLabel={inLibrary ? 'Acciones' : 'Agregar a favoritos'}
+                    onMenuTriggerClick={!inLibrary ? () => {
+                      void handleAddBook(book, 'FAVORITE');
+                    } : undefined}
+                    menuTriggerDisabled={isSaving}
                     book={book}
                     badge={
                       inLibrary && (
@@ -251,22 +294,61 @@ export function SearchBooks() {
                         </span>
                       )
                     }
+                    coverOverlay={
+                      inLibrary && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              disabled={isSaving}
+                              className="h-8 w-full justify-between bg-background/65 px-2 text-xs backdrop-blur-sm"
+                            >
+                              <span>{isSaving ? 'Guardando...' : statusLabel(currentStatus)}</span>
+                              {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="center" className="w-40">
+                            {statuses.map((statusOption) => (
+                              <DropdownMenuItem
+                                key={statusOption}
+                                onClick={() => {
+                                  void handleChangeSavedStatus(book, statusOption);
+                                }}
+                              >
+                                {statusLabel(statusOption)}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )
+                    }
                     actions={
                       <div className="flex w-full flex-col gap-2">
                         <StatusSelect
-                          value={status}
+                          value={currentStatus}
                           onChange={(newStatus) =>
-                            setSelectedStatuses({ ...selectedStatuses, [book.id]: newStatus })
+                            inLibrary
+                              ? void handleChangeSavedStatus(book, newStatus)
+                              : setSelectedStatuses({ ...selectedStatuses, [book.id]: newStatus })
                           }
+                          disabled={isSaving}
                         />
                         <Button
                           size="sm"
-                          onClick={() => handleAddBook(book, status)}
-                          disabled={isSavingBookId === book.id}
+                          onClick={() => {
+                            void handleAddBook(book, selectedStatus);
+                          }}
+                          disabled={isSaving}
                           className="w-full"
                         >
-                          <Plus className="mr-2 h-4 w-4" />
-                          {inLibrary ? 'Actualizar' : 'Agregar'}
+                          {isSaving ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Plus className="mr-2 h-4 w-4" />
+                          )}
+                          {isSaving ? 'Guardando...' : inLibrary ? 'Actualizar' : 'Agregar'}
                         </Button>
                       </div>
                     }
