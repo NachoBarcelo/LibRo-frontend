@@ -8,11 +8,13 @@ import { EmptyState } from '../components/EmptyState';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Search, Plus, ChevronDown, Loader2 } from 'lucide-react';
 import { Book, BookStatus } from '../types';
-import { searchBooks } from '@/api/services/booksService';
+import { getBookEditions, searchBooks } from '@/api/services/booksService';
+import { BookEdition } from '@/shared/types/domain';
 import { useLibrary } from '../context/LibraryContext';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 export function SearchBooks() {
   type ViewMode = 'list' | 'grid-1' | 'grid-2' | 'grid-4';
@@ -24,6 +26,11 @@ export function SearchBooks() {
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState<Record<string, BookStatus>>({});
+  const [editionDialogOpen, setEditionDialogOpen] = useState(false);
+  const [editionOptions, setEditionOptions] = useState<BookEdition[]>([]);
+  const [pendingBook, setPendingBook] = useState<Book | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<BookStatus>('FAVORITE');
+  const [isLoadingEditions, setIsLoadingEditions] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -101,7 +108,9 @@ export function SearchBooks() {
         author: book.author ?? 'Autor desconocido',
         year: book.year,
         isbn: book.isbn,
-        cover: book.coverUrl
+        cover: book.coverUrl,
+        description: book.description,
+        genres: book.genres
       }));
       setResults(normalizedBooks);
     } catch (err) {
@@ -121,6 +130,7 @@ export function SearchBooks() {
     setIsSavingBookId(book.id);
 
     try {
+      console.log('[SearchBooks] Guardando libro con payload (pre-addBook):', book);
       await addBook(book, status);
       toast.success(`"${book.title}" agregado a tu lista como ${
         status === 'FAVORITE' ? 'Favorito' :
@@ -133,6 +143,88 @@ export function SearchBooks() {
     }
   };
 
+  const toYearNumber = (year: string | null | undefined): number | undefined => {
+    if (!year) {
+      return undefined;
+    }
+
+    const match = year.match(/\d{4}/);
+    if (!match) {
+      return undefined;
+    }
+
+    const parsed = Number(match[0]);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  };
+
+  const applyEditionToBook = (book: Book, edition: BookEdition): Book => {
+    return {
+      ...book,
+      editionId: edition.editionId || book.editionId,
+      language: edition.language || book.language,
+      publisher: edition.publisher ?? book.publisher,
+      cover: edition.image ?? book.cover,
+      isbn: edition.isbn ?? book.isbn,
+      year: toYearNumber(edition.year) ?? book.year,
+    };
+  };
+
+  const handleAddBookWithEditionSelection = async (book: Book, status: BookStatus) => {
+    const workId = book.externalId?.trim();
+
+    if (!workId || !(workId.startsWith('/works/') || /^OL\d+W$/i.test(workId))) {
+      await handleAddBook(book, status);
+      return;
+    }
+
+    setIsLoadingEditions(true);
+    setIsSavingBookId(book.id);
+
+    try {
+      const editions = await getBookEditions(workId);
+      console.log('[SearchBooks] Ediciones obtenidas para', workId, editions);
+
+      if (editions.length > 1) {
+        setPendingBook(book);
+        setPendingStatus(status);
+        setEditionOptions(editions);
+        setEditionDialogOpen(true);
+        console.log('[SearchBooks] Abriendo selector de ediciones', {
+          book,
+          status,
+          editionsCount: editions.length,
+          editions,
+        });
+      } else if (editions.length === 1) {
+        console.log('[SearchBooks] Una sola edición, se guarda automáticamente', editions[0]);
+        await handleAddBook(applyEditionToBook(book, editions[0]), status);
+      } else {
+        console.log('[SearchBooks] Sin ediciones, se guarda libro base', book);
+        await handleAddBook(book, status);
+      }
+    } catch {
+      toast.error('No se pudieron cargar las ediciones. Intenta nuevamente.');
+    } finally {
+      setIsLoadingEditions(false);
+      setIsSavingBookId(null);
+    }
+  };
+
+  const handleSelectEdition = async (edition: BookEdition) => {
+    if (!pendingBook) {
+      return;
+    }
+
+    const mergedBook = applyEditionToBook(pendingBook, edition);
+    console.log('[SearchBooks] Edición seleccionada', edition);
+    console.log('[SearchBooks] Libro resultante tras aplicar edición', mergedBook);
+
+    setEditionDialogOpen(false);
+    await handleAddBook(mergedBook, pendingStatus);
+    setPendingBook(null);
+    setEditionOptions([]);
+  };
+
   const handleChangeSavedStatus = async (book: Book, status: BookStatus) => {
     const savedBook = userBooks.find((item) => {
       if (book.externalId && item.externalId) {
@@ -143,7 +235,7 @@ export function SearchBooks() {
     });
 
     if (!savedBook) {
-      await handleAddBook(book, status);
+      await handleAddBookWithEditionSelection(book, status);
       return;
     }
 
@@ -283,9 +375,9 @@ export function SearchBooks() {
                     menuTriggerIcon={!inLibrary ? (isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />) : undefined}
                     menuTriggerLabel={inLibrary ? 'Acciones' : 'Agregar a favoritos'}
                     onMenuTriggerClick={!inLibrary ? () => {
-                      void handleAddBook(book, 'FAVORITE');
+                      void handleAddBookWithEditionSelection(book, 'FAVORITE');
                     } : undefined}
-                    menuTriggerDisabled={isSaving}
+                    menuTriggerDisabled={isSaving || isLoadingEditions}
                     book={book}
                     badge={
                       inLibrary && (
@@ -338,9 +430,9 @@ export function SearchBooks() {
                         <Button
                           size="sm"
                           onClick={() => {
-                            void handleAddBook(book, selectedStatus);
+                            void handleAddBookWithEditionSelection(book, selectedStatus);
                           }}
-                          disabled={isSaving}
+                          disabled={isSaving || isLoadingEditions}
                           className="w-full"
                         >
                           {isSaving ? (
@@ -367,6 +459,44 @@ export function SearchBooks() {
           />
         )}
       </div>
+
+      <Dialog open={editionDialogOpen} onOpenChange={setEditionDialogOpen}>
+        <DialogContent className="max-w-4xl p-4 sm:p-6">
+          <DialogHeader>
+            <DialogTitle>Selecciona una edición</DialogTitle>
+            <DialogDescription>
+              Encontramos varias ediciones. Elige una portada para guardar esa edición en tu biblioteca.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[65vh] overflow-y-auto pr-1 sm:max-h-[70vh]">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+              {editionOptions.map((edition) => (
+                <button
+                  key={edition.editionId}
+                  type="button"
+                  onClick={() => {
+                    void handleSelectEdition(edition);
+                  }}
+                  className="rounded-md border border-border p-2 text-left transition-colors hover:bg-accent/40"
+                >
+                  <div className="aspect-[2/3] overflow-hidden rounded bg-muted">
+                    {edition.image ? (
+                      <img src={edition.image} alt={`Edición ${edition.editionId}`} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                        Sin portada
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">{edition.language}</p>
+                  <p className="line-clamp-1 text-xs text-muted-foreground">{edition.year ?? 'Año desconocido'}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

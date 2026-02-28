@@ -1,11 +1,19 @@
 import { RouterProvider } from 'react-router-dom';
+import { useState } from 'react';
 import { LibraryProvider } from './context/LibraryContext';
 import { router } from './routes';
+import { LoaderScreen } from './components/LoaderScreen';
 
 export default function App() {
+  const [showLoader, setShowLoader] = useState(true);
+
   return (
     <LibraryProvider>
-      <RouterProvider router={router} />
+      {showLoader ? (
+        <LoaderScreen onLoadComplete={() => setShowLoader(false)} />
+      ) : (
+        <RouterProvider router={router} />
+      )}
     </LibraryProvider>
   );
 }

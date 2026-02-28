@@ -69,9 +69,9 @@ export function Dashboard() {
   return (
     <div className="min-h-screen">
       <PageHeader
-        title="Bienvenido a LibRo"
-        subtitle="Tu espacio personal para gestionar lecturas y reseñas"
-        icon={<Sparkles className="mt-1 h-7 w-7 text-amber-500" />}
+        title="Bienvenida a LibRo"
+        subtitle="Tu biblioteca virtual personal"
+        icon={<Sparkles className="mt-1 h-7 w-7 text-[#6f1028]" />}
       />
 
 

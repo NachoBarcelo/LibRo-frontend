@@ -256,6 +256,7 @@ export function MyBooks() {
                 <BookCard
                   key={book.id}
                   variant={cardVariant}
+                  coverLinkTo={`/books/${book.id}`}
                   menuTriggerIcon={isDeletingBook && bookToDelete === book.id ? <Loader2 className="h-4 w-4 animate-spin text-destructive" /> : <Trash2 className="h-4 w-4 text-destructive" />}
                   menuTriggerLabel="Eliminar libro"
                   menuTriggerClassName="text-destructive hover:bg-destructive/10"

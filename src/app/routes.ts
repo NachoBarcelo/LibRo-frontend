@@ -3,6 +3,7 @@ import { Layout } from './pages/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { SearchBooks } from './pages/SearchBooks';
 import { MyBooks } from './pages/MyBooks';
+import { BookDetail } from './pages/BookDetail';
 import { Reviews } from './pages/Reviews';
 import { NewReview } from './pages/NewReview';
 import { ReviewDetail } from './pages/ReviewDetail';
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { index: true, Component: Dashboard },
       { path: 'search', Component: SearchBooks },
       { path: 'my-books', Component: MyBooks },
+      { path: 'books/:id', Component: BookDetail },
       { path: 'reviews', Component: Reviews },
       { path: 'reviews/new', Component: NewReview },
       { path: 'reviews/:id', Component: ReviewDetail },

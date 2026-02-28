@@ -28,8 +28,14 @@ export function SearchBox({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const skipNextSuggestionsRef = useRef(false);
 
   useEffect(() => {
+    if (skipNextSuggestionsRef.current) {
+      skipNextSuggestionsRef.current = false;
+      return;
+    }
+
     if (!showSuggestions || value.length < 2) {
       setSuggestions([]);
       setShowDropdown(false);
@@ -94,6 +100,8 @@ export function SearchBox({
   };
 
   const handleSuggestionClick = (book: Book) => {
+    skipNextSuggestionsRef.current = true;
+    setSuggestions([]);
     setShowDropdown(false);
     onSuggestionClick?.(book);
   };
@@ -107,7 +115,7 @@ export function SearchBox({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="pl-10 pr-20"
+          className="pl-10 pr-20 bg-primary/10 border-primary/20 focus-visible:ring-primary/30"
           onFocus={() => {
             if (suggestions.length > 0) {
               setShowDropdown(true);

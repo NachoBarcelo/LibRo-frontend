@@ -1,11 +1,24 @@
 import { httpClient } from '@/api/httpClient';
-import { Book, BookSearchResult, CreateBookDto } from '@/shared/types/domain';
+import { Book, BookEdition, BookSearchDetail, BookSearchResult, CreateBookDto } from '@/shared/types/domain';
+import { BookDetail, BookDetailReview, BookDetailUserBook } from '@/app/types';
 
 interface RawBook {
   id?: number | string;
   key?: string;
   bookId?: number | string;
   externalId?: string;
+  titulo?: string;
+  autor?: string;
+  imagen?: string | null;
+  sinopsis?: string | null;
+  generos?: string[];
+  idioma?: string;
+  anio?: string | null;
+  editorial?: string | null;
+  edicionId?: string;
+  editionId?: string;
+  language?: string;
+  publisher?: string;
   title?: string;
   author?: string;
   authorName?: string;
@@ -17,9 +30,36 @@ interface RawBook {
   coverImage?: string;
   coverId?: number;
   coverI?: number;
+  createdAt?: string;
+  userBooks?: RawBookDetailUserBook[];
+  reviews?: RawBookDetailReview[];
+  openLibrary?: Record<string, unknown> | null;
+  synopsis?: string | null;
+  genres?: string[];
+}
+
+interface RawBookDetailUserBook {
+  id?: string | number;
+  bookId?: string | number;
+  status?: 'FAVORITE' | 'TO_READ' | 'READ';
+  createdAt?: string;
+}
+
+interface RawBookDetailReview {
+  id?: string | number;
+  bookId?: string | number;
+  title?: string;
+  content?: string;
+  rating?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 function buildCoverUrl(raw: RawBook): string | undefined {
+  if (raw.imagen) {
+    return raw.imagen;
+  }
+
   if (raw.coverUrl) {
     return raw.coverUrl;
   }
@@ -38,6 +78,54 @@ function buildCoverUrl(raw: RawBook): string | undefined {
   }
 
   return undefined;
+}
+
+function normalizeBookDetailUserBook(raw: RawBookDetailUserBook): BookDetailUserBook {
+  return {
+    id: String(raw.id ?? ''),
+    bookId: String(raw.bookId ?? ''),
+    status: raw.status ?? 'TO_READ',
+    createdAt: raw.createdAt
+  };
+}
+
+function normalizeBookDetailReview(raw: RawBookDetailReview): BookDetailReview {
+  return {
+    id: String(raw.id ?? ''),
+    bookId: String(raw.bookId ?? ''),
+    title: raw.title ?? 'Sin título',
+    content: raw.content ?? '',
+    rating: Number(raw.rating ?? 0),
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt
+  };
+}
+
+function normalizeBookDetail(raw: RawBook): BookDetail {
+  const genres = Array.isArray(raw.genres)
+    ? raw.genres
+    : Array.isArray(raw.generos)
+    ? raw.generos
+    : [];
+
+  return {
+    id: String(raw.id ?? raw.bookId ?? ''),
+    externalId: raw.externalId,
+    title: raw.title ?? raw.titulo ?? 'Sin título',
+    author: raw.author ?? raw.authorName ?? raw.autor ?? 'Autor desconocido',
+    coverImage: buildCoverUrl(raw),
+    publishedYear: raw.publishedYear ?? raw.year ?? raw.firstPublishYear ?? raw.publishedYear,
+    synopsis: raw.synopsis ?? raw.sinopsis ?? null,
+    genres: genres.slice(0, 5),
+    createdAt: raw.createdAt,
+    userBooks: Array.isArray(raw.userBooks)
+      ? raw.userBooks.map(normalizeBookDetailUserBook)
+      : [],
+    reviews: Array.isArray(raw.reviews)
+      ? raw.reviews.map(normalizeBookDetailReview)
+      : [],
+    openLibrary: raw.openLibrary ?? null
+  };
 }
 
 function extractOlidFromKey(key?: string): string | undefined {
@@ -64,21 +152,30 @@ function buildExternalId(raw: RawBook): string {
     return `openlibrary:isbn:${raw.isbn}`;
   }
 
-  const title = raw.title?.trim() || 'sin-titulo';
-  const author = (raw.author ?? raw.authorName ?? 'sin-autor').trim();
+  const title = (raw.title ?? raw.titulo)?.trim() || 'sin-titulo';
+  const author = (raw.author ?? raw.authorName ?? raw.autor ?? 'sin-autor').trim();
   const year = String(raw.year ?? raw.firstPublishYear ?? raw.publishedYear ?? 'na');
   return `openlibrary:fallback:${title}:${author}:${year}`;
 }
 
 function normalizeBook(raw: RawBook): Book {
   return {
-    id: raw.id ?? raw.bookId ?? raw.key ?? raw.isbn ?? raw.title ?? '',
+    id: String(raw.id ?? raw.bookId ?? raw.key ?? raw.isbn ?? raw.title ?? raw.titulo ?? ''),
     externalId: raw.externalId,
-    title: raw.title ?? 'Sin título',
-    author: raw.author ?? raw.authorName ?? 'Autor desconocido',
+    editionId: raw.edicionId ?? raw.editionId,
+    title: raw.title ?? raw.titulo ?? 'Sin título',
+    author: raw.author ?? raw.authorName ?? raw.autor ?? 'Autor desconocido',
+    language: raw.idioma ?? raw.language,
+    publisher: raw.editorial ?? raw.publisher,
     year: raw.year ?? raw.firstPublishYear ?? raw.publishedYear,
     isbn: raw.isbn,
-    coverUrl: buildCoverUrl(raw)
+    coverUrl: buildCoverUrl(raw),
+    description: raw.synopsis ?? raw.sinopsis ?? undefined,
+    genres: Array.isArray(raw.genres)
+      ? raw.genres.slice(0, 5)
+      : Array.isArray(raw.generos)
+      ? raw.generos.slice(0, 5)
+      : undefined
   };
 }
 
@@ -92,40 +189,83 @@ export async function getBooks(): Promise<Book[]> {
 }
 
 export async function searchBooks(query: string): Promise<BookSearchResult[]> {
-  const { data } = await httpClient.get('/api/books/search', {
-    params: { query }
-  });
+  try {
+    const response = await httpClient.get('/api/books/search', {
+      params: { query, language: 'spa' }
+    });
 
-  // Manejar diferentes formatos de respuesta de la API
-  let booksArray: RawBook[] = [];
-  
-  if (Array.isArray(data)) {
-    booksArray = data;
-  } else if (data && Array.isArray(data.docs)) {
-    // Formato Open Library API
-    booksArray = data.docs;
-  } else if (data && Array.isArray(data.results)) {
-    booksArray = data.results;
-  } else if (data && Array.isArray(data.books)) {
-    booksArray = data.books;
-  } else if (data && typeof data === 'object') {
-    // Si es un objeto con alguna propiedad que sea array, intentar usar esa
-    const firstArrayProp = Object.values(data).find(val => Array.isArray(val));
-    if (firstArrayProp && Array.isArray(firstArrayProp)) {
-      booksArray = firstArrayProp;
+    const payload = response.data?.data ?? response.data;
+    const booksArray: RawBook[] = Array.isArray(payload) ? payload : [];
+
+    return booksArray.map((rawBook, index) => {
+      const normalized = normalizeBook(rawBook);
+      const externalId = String(rawBook.externalId ?? rawBook.key ?? buildExternalId(rawBook));
+
+      return {
+        ...normalized,
+        id: `${externalId}-${index}`,
+        externalId
+      };
+    });
+  } catch (error: unknown) {
+    const status =
+      typeof error === 'object' &&
+      error !== null &&
+      'response' in error &&
+      typeof (error as { response?: { status?: number } }).response?.status === 'number'
+        ? (error as { response?: { status?: number } }).response?.status
+        : undefined;
+
+    if (status === 404) {
+      return [];
     }
+
+    throw error;
   }
+}
 
-  return booksArray.map((rawBook, index) => {
-    const normalized = normalizeBook(rawBook);
-    const externalId = buildExternalId(rawBook);
+function normalizeBookSearchDetail(raw: RawBook): BookSearchDetail {
+  const genres = Array.isArray(raw.generos)
+    ? raw.generos
+    : Array.isArray(raw.genres)
+    ? raw.genres
+    : [];
 
-    return {
-      ...normalized,
-      id: `${externalId}-${index}`,
-      externalId
-    };
+  return {
+    title: raw.titulo ?? raw.title ?? 'Sin título',
+    author: raw.autor ?? raw.author ?? raw.authorName ?? 'Autor desconocido',
+    image: raw.imagen ?? buildCoverUrl(raw) ?? null,
+    synopsis: raw.sinopsis ?? raw.synopsis ?? null,
+    genres: genres.slice(0, 5),
+  };
+}
+
+export async function searchBookDetailByExternalId(externalId: string): Promise<BookSearchDetail> {
+  const response = await httpClient.get('/api/books/search/detail', {
+    params: { externalId }
   });
+
+  const payload: RawBook = response.data?.data ?? response.data;
+  return normalizeBookSearchDetail(payload);
+}
+
+function normalizeBookEdition(raw: RawBook): BookEdition {
+  return {
+    editionId: String(raw.edicionId ?? raw.key ?? ''),
+    language: raw.idioma ?? 'Otro',
+    isbn: raw.isbn ? String(raw.isbn) : null,
+    year: raw.anio ?? null,
+    publisher: raw.editorial ?? null,
+    image: raw.imagen ?? buildCoverUrl(raw) ?? null,
+  };
+}
+
+export async function getBookEditions(workId: string): Promise<BookEdition[]> {
+  const normalizedWorkId = workId.startsWith('/works/') ? workId.replace('/works/', '') : workId;
+  const response = await httpClient.get(`/books/${normalizedWorkId}/editions`);
+  const payload = response.data?.data ?? response.data;
+  const editionsArray: RawBook[] = Array.isArray(payload) ? payload : [];
+  return editionsArray.map(normalizeBookEdition);
 }
 
 export async function createBook(payload: CreateBookDto): Promise<Book> {
@@ -144,4 +284,11 @@ export async function createBook(payload: CreateBookDto): Promise<Book> {
   }
   
   return normalizeBook(bookData);
+}
+
+export async function getBookDetailById(id: string): Promise<BookDetail> {
+  const response = await httpClient.get(`/books/${id}`);
+
+  const rawData: RawBook = response.data?.data ?? response.data;
+  return normalizeBookDetail(rawData);
 }

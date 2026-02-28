@@ -3,11 +3,16 @@ export type UserBookStatus = 'FAVORITE' | 'TO_READ' | 'READ';
 export interface Book {
   id: string;
   externalId?: string;
+  editionId?: string;
   title: string;
   author?: string;
+  language?: string;
+  publisher?: string;
   year?: number;
   isbn?: string;
   coverUrl?: string;
+  description?: string;
+  genres?: string[];
 }
 
 export interface BookSearchResult {
@@ -18,12 +23,35 @@ export interface BookSearchResult {
   year?: number;
   isbn?: string;
   coverUrl?: string;
+  description?: string;
+  genres?: string[];
+}
+
+export interface BookSearchDetail {
+  title: string;
+  author: string;
+  image: string | null;
+  synopsis: string | null;
+  genres: string[];
+}
+
+export interface BookEdition {
+  editionId: string;
+  language: string;
+  isbn: string | null;
+  year: string | null;
+  publisher: string | null;
+  image: string | null;
 }
 
 export interface CreateBookDto {
   externalId: string;
+  editionId?: string;
   title: string;
   author: string;
+  language?: string;
+  publisher?: string;
+  isbn?: string;
   coverImage?: string;
   publishedYear?: number;
 }

@@ -19,11 +19,9 @@ export function TopBar() {
         <Link to="/" className="flex items-center gap-2 group">
           <div className="relative">
             <BookOpen className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
-            <div className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-accent animate-pulse" />
           </div>
           <div className="hidden sm:block">
             <span className="text-xl font-bold tracking-tight">LibRo</span>
-            <span className="ml-1 text-xs text-muted-foreground italic">· tu biblioteca mística</span>
           </div>
           <div className="sm:hidden">
             <span className="text-xl font-bold tracking-tight">LibRo</span>

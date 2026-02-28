@@ -1,5 +1,6 @@
 import React, { ReactNode, useState } from 'react';
 import { Book } from '../types';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from './ui/card';
 import { BookOpen, MoreHorizontal } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from './ui/dropdown-menu';
@@ -10,6 +11,7 @@ interface BookCardProps {
   actions?: ReactNode;
   badge?: ReactNode;
   coverOverlay?: ReactNode;
+  coverLinkTo?: string;
   onClick?: () => void;
   variant?: 'grid' | 'list';
   menuTriggerIcon?: ReactNode;
@@ -24,6 +26,7 @@ export function BookCard({
   actions,
   badge,
   coverOverlay,
+  coverLinkTo,
   onClick,
   variant = 'grid',
   menuTriggerIcon,
@@ -39,6 +42,36 @@ export function BookCard({
   const triggerIcon = menuTriggerIcon ?? <MoreHorizontal className="h-4 w-4" />;
   const triggerLabel = menuTriggerLabel ?? 'Abrir acciones';
   const triggerClassName = `h-8 w-8 ${menuTriggerClassName ?? ''}`;
+  const coverClassName = isList
+    ? 'relative h-28 w-20 flex-shrink-0 overflow-hidden bg-muted sm:h-32 sm:w-24'
+    : 'relative aspect-[2/3] overflow-hidden bg-muted';
+  const coverInner = (
+    <>
+      {book.cover ? (
+        <img
+          src={book.cover}
+          alt={book.title}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
+          <BookOpen
+            className={isList ? 'h-8 w-8 text-muted-foreground/30' : 'h-16 w-16 text-muted-foreground/30'}
+          />
+        </div>
+      )}
+      {badge && !isList && (
+        <div className="absolute right-2 top-2">
+          {badge}
+        </div>
+      )}
+      {coverOverlay && (
+        <div className="absolute bottom-2 left-2 right-2 z-10">
+          {coverOverlay}
+        </div>
+      )}
+    </>
+  );
 
   return (
     <Card
@@ -46,36 +79,18 @@ export function BookCard({
       onClick={onClick}
     >
       <div className={isList ? 'flex h-28 sm:h-32' : ''}>
-        <div
-          className={isList
-            ? 'relative h-28 w-20 flex-shrink-0 overflow-hidden bg-muted sm:h-32 sm:w-24'
-            : 'relative aspect-[2/3] overflow-hidden bg-muted'
-          }
-        >
-          {book.cover ? (
-            <img
-              src={book.cover}
-              alt={book.title}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
-              <BookOpen
-                className={isList ? 'h-8 w-8 text-muted-foreground/30' : 'h-16 w-16 text-muted-foreground/30'}
-              />
-            </div>
-          )}
-          {badge && !isList && (
-            <div className="absolute right-2 top-2">
-              {badge}
-            </div>
-          )}
-          {coverOverlay && (
-            <div className="absolute bottom-2 left-2 right-2 z-10">
-              {coverOverlay}
-            </div>
-          )}
-        </div>
+        {coverLinkTo ? (
+          <Link
+            to={coverLinkTo}
+            className={`${coverClassName} block group`}
+            onClick={(event) => event.stopPropagation()}
+            aria-label={`Ver detalle de ${book.title}`}
+          >
+            {coverInner}
+          </Link>
+        ) : (
+          <div className={coverClassName}>{coverInner}</div>
+        )}
         <div className={isList ? 'flex min-w-0 flex-1 flex-col overflow-hidden' : ''}>
           <CardContent className={isList ? 'flex-1 overflow-hidden p-4 py-3' : 'p-4'}>
             <div className={isList ? 'flex items-start justify-between gap-3' : ''}>

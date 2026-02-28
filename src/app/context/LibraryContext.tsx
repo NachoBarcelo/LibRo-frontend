@@ -21,10 +21,16 @@ interface LibraryContextType {
 interface RawBook {
   id?: string | number;
   externalId?: string;
+  editionId?: string;
+  edicionId?: string;
   key?: string;
   title?: string;
   author?: string;
   authorName?: string;
+  language?: string;
+  idioma?: string;
+  publisher?: string;
+  editorial?: string;
   year?: number;
   firstPublishYear?: number;
   publishedYear?: number;
@@ -109,8 +115,11 @@ function normalizeBook(raw: RawBook): Book {
   return {
     id: String(raw.id ?? ''),
     externalId: buildExternalId(raw),
+    editionId: raw.editionId ?? raw.edicionId,
     title: raw.title ?? 'Sin título',
     author: raw.author ?? raw.authorName ?? 'Autor desconocido',
+    language: raw.language ?? raw.idioma,
+    publisher: raw.publisher ?? raw.editorial,
     year: raw.year ?? raw.firstPublishYear ?? raw.publishedYear,
     isbn: raw.isbn,
     cover: buildCover(raw)
@@ -158,10 +167,20 @@ function toCreateBookPayload(book: Book) {
 
   return {
     externalId,
+    editionId: book.editionId,
+    edicionId: book.editionId,
     title: book.title,
     author: book.author,
+    language: book.language,
+    idioma: book.language,
+    publisher: book.publisher,
+    editorial: book.publisher,
+    isbn: book.isbn,
     coverImage: book.cover,
-    publishedYear: book.year
+    coverUrl: book.cover,
+    imagen: book.cover,
+    publishedYear: book.year,
+    anio: book.year ? String(book.year) : null
   };
 }
 
@@ -232,7 +251,9 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
 
     try {
       // Paso 1: Crear libro en la BD local
-      const response = await httpClient.post('/books', toCreateBookPayload(book));
+      const createPayload = toCreateBookPayload(book);
+      console.log('[LibraryContext] POST /books payload', createPayload);
+      const response = await httpClient.post('/books', createPayload);
       
       // Extraer el UUID del libro - manejar diferentes formatos de respuesta
       let bookUuid: string;
