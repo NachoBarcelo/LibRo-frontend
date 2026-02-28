@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 import { BookCard } from '../components/BookCard';
-import { StatusSelect, StatusBadge } from '../components/StatusSelect';
+import { StatusSelect } from '../components/StatusSelect';
 import { EmptyState } from '../components/EmptyState';
 import { BookMarked, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useLibrary } from '../context/LibraryContext';
@@ -252,41 +252,75 @@ export function MyBooks() {
               {filteredBooks.length === 1 ? 'libro' : 'libros'}
             </p>
             <div className={listClassName}>
-              {filteredBooks.map((book) => (
-                <BookCard
-                  key={book.id}
-                  variant={cardVariant}
-                  coverLinkTo={`/books/${book.id}`}
-                  menuTriggerIcon={isDeletingBook && bookToDelete === book.id ? <Loader2 className="h-4 w-4 animate-spin text-destructive" /> : <Trash2 className="h-4 w-4 text-destructive" />}
-                  menuTriggerLabel="Eliminar libro"
-                  menuTriggerClassName="text-destructive hover:bg-destructive/10"
-                  onMenuTriggerClick={() => setBookToDelete(book.id)}
-                  menuTriggerDisabled={isDeletingBook}
-                  book={book}
-                  badge={<StatusBadge status={book.status} />}
-                  actions={
-                    <div className="flex w-full flex-col gap-2">
-                      <StatusSelect
-                        value={book.status}
-                        onChange={(newStatus) =>
-                          handleStatusChange(book.id, newStatus)
-                        }
-                        disabled={isUpdatingBookId === book.id || isDeletingBook}
-                      />
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => setBookToDelete(book.id)}
-                        disabled={isDeletingBook}
-                        className="w-full"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Eliminar
-                      </Button>
-                    </div>
-                  }
-                />
-              ))}
+              {filteredBooks.map((book) => {
+                const isListMode = cardVariant === 'list';
+                const isGridMode = cardVariant === 'grid';
+                const isDeletingThisBook = isDeletingBook && bookToDelete === book.id;
+
+                return (
+                  <BookCard
+                    key={book.id}
+                    variant={cardVariant}
+                    coverLinkTo={`/books/${book.id}`}
+                    menuTriggerIcon={isDeletingThisBook ? <Loader2 className="h-4 w-4 animate-spin text-destructive" /> : <Trash2 className="h-4 w-4 text-destructive" />}
+                    menuTriggerLabel="Eliminar libro"
+                    menuTriggerClassName="text-destructive hover:bg-destructive/10"
+                    onMenuTriggerClick={() => setBookToDelete(book.id)}
+                    menuTriggerDisabled={isDeletingBook}
+                    minimalGridInfo={isGridMode}
+                    book={book}
+                    badge={
+                      isListMode ? (
+                        <span className="rounded-full bg-green-600 px-2 py-1 text-xs text-white">
+                          En biblioteca
+                        </span>
+                      ) : undefined
+                    }
+                    coverOverlay={
+                      isGridMode ? (
+                        <div className="flex items-end justify-between gap-2">
+                          <span className="rounded-full bg-green-600/85 px-2 py-1 text-xs text-white backdrop-blur-sm">
+                            En biblioteca
+                          </span>
+                          <Button
+                            type="button"
+                            size="icon"
+                            onClick={() => setBookToDelete(book.id)}
+                            disabled={isDeletingBook}
+                            className="h-9 w-9 rounded-full bg-destructive/85 text-destructive-foreground shadow-sm hover:bg-destructive"
+                            aria-label="Eliminar de la lista"
+                          >
+                            {isDeletingThisBook ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                      ) : undefined
+                    }
+                    actions={
+                      isListMode ? (
+                        <div className="flex w-full flex-col gap-2">
+                          <StatusSelect
+                            value={book.status}
+                            onChange={(newStatus) =>
+                              handleStatusChange(book.id, newStatus)
+                            }
+                            disabled={isUpdatingBookId === book.id || isDeletingBook}
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setBookToDelete(book.id)}
+                            disabled={isDeletingBook}
+                            className="w-full"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Eliminar
+                          </Button>
+                        </div>
+                      ) : undefined
+                    }
+                  />
+                );
+              })}
             </div>
           </div>
         )}

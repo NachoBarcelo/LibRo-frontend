@@ -13,6 +13,7 @@ interface StatusSelectProps {
   value: BookStatus;
   onChange: (status: BookStatus) => void;
   disabled?: boolean;
+  triggerClassName?: string;
 }
 
 const statusConfig = {
@@ -33,10 +34,10 @@ const statusConfig = {
   },
 };
 
-export function StatusSelect({ value, onChange, disabled }: StatusSelectProps) {
+export function StatusSelect({ value, onChange, disabled, triggerClassName }: StatusSelectProps) {
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="w-[160px]">
+      <SelectTrigger className={`w-[160px] ${triggerClassName ?? ''}`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

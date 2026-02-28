@@ -6,15 +6,24 @@ import { StatusSelect } from '../components/StatusSelect';
 import { Loader } from '../components/Loader';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { Search, Plus, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Plus, Loader2, Trash2 } from 'lucide-react';
 import { Book, BookStatus } from '../types';
 import { getBookEditions, searchBooks } from '@/api/services/booksService';
 import { BookEdition } from '@/shared/types/domain';
 import { useLibrary } from '../context/LibraryContext';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../components/ui/alert-dialog';
 
 export function SearchBooks() {
   type ViewMode = 'list' | 'grid-1' | 'grid-2' | 'grid-4';
@@ -31,6 +40,8 @@ export function SearchBooks() {
   const [pendingBook, setPendingBook] = useState<Book | null>(null);
   const [pendingStatus, setPendingStatus] = useState<BookStatus>('FAVORITE');
   const [isLoadingEditions, setIsLoadingEditions] = useState(false);
+  const [bookToDelete, setBookToDelete] = useState<string | null>(null);
+  const [isDeletingBook, setIsDeletingBook] = useState(false);
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -50,9 +61,7 @@ export function SearchBooks() {
     return window.innerWidth >= 1024 ? 'grid-4' : 'grid-1';
   });
 
-  const { addBook, updateBookStatus, userBooks } = useLibrary();
-
-  const statuses: BookStatus[] = ['TO_READ', 'FAVORITE', 'READ'];
+  const { addBook, updateBookStatus, removeBook, userBooks } = useLibrary();
 
   const statusLabel = (status: BookStatus) =>
     status === 'FAVORITE' ? 'Favorito' : status === 'TO_READ' ? 'Por leer' : 'Leído';
@@ -255,6 +264,24 @@ export function SearchBooks() {
     }
   };
 
+  const handleDeleteBook = async () => {
+    if (!bookToDelete) {
+      return;
+    }
+
+    setIsDeletingBook(true);
+
+    try {
+      await removeBook(bookToDelete);
+      toast.success('Libro eliminado de tu lista');
+    } catch {
+      toast.error('No se pudo eliminar el libro.');
+    } finally {
+      setIsDeletingBook(false);
+      setBookToDelete(null);
+    }
+  };
+
   const getSavedBook = (book: Book) => {
     return userBooks.find((savedBook) => {
       if (book.externalId && savedBook.externalId) {
@@ -367,56 +394,89 @@ export function SearchBooks() {
                 const selectedStatus = selectedStatuses[book.id] || 'FAVORITE';
                 const currentStatus = savedBook?.status ?? selectedStatus;
                 const isSaving = isSavingBookId === book.id;
+                const isListMode = cardVariant === 'list';
+                const isGridMode = cardVariant === 'grid';
+                const isDeletingThisBook = isDeletingBook && bookToDelete === savedBook?.id;
 
                 return (
                   <BookCard
                     key={book.id}
                     variant={cardVariant}
-                    menuTriggerIcon={!inLibrary ? (isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />) : undefined}
-                    menuTriggerLabel={inLibrary ? 'Acciones' : 'Agregar a favoritos'}
-                    onMenuTriggerClick={!inLibrary ? () => {
+                    menuTriggerIcon={
+                      inLibrary
+                        ? isDeletingThisBook
+                          ? <Loader2 className="h-4 w-4 animate-spin text-destructive" />
+                          : <Trash2 className="h-4 w-4 text-destructive" />
+                        : isSaving
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Plus className="h-4 w-4" />
+                    }
+                    menuTriggerLabel={inLibrary ? 'Eliminar libro' : 'Agregar a favoritos'}
+                    menuTriggerClassName={inLibrary ? 'text-destructive hover:bg-destructive/10' : undefined}
+                    onMenuTriggerClick={() => {
+                      if (inLibrary) {
+                        setBookToDelete(savedBook?.id ?? null);
+                        return;
+                      }
+
                       void handleAddBookWithEditionSelection(book, 'FAVORITE');
-                    } : undefined}
-                    menuTriggerDisabled={isSaving || isLoadingEditions}
+                    }}
+                    menuTriggerDisabled={isSaving || isLoadingEditions || isDeletingBook}
+                    minimalGridInfo={isGridMode}
                     book={book}
                     badge={
-                      inLibrary && (
-                        <span className="rounded-full bg-green-600 px-2 py-1 text-xs text-white">
+                      isListMode && inLibrary ? (
+                        <span className={`rounded-full px-2 py-1 text-xs ${inLibrary ? 'bg-green-600 text-white' : 'bg-muted text-muted-foreground'}`}>
                           En biblioteca
                         </span>
-                      )
+                      ) : undefined
                     }
                     coverOverlay={
-                      inLibrary && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              disabled={isSaving}
-                              className="h-8 w-full justify-between bg-background/65 px-2 text-xs backdrop-blur-sm"
-                            >
-                              <span>{isSaving ? 'Guardando...' : statusLabel(currentStatus)}</span>
-                              {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="center" className="w-40">
-                            {statuses.map((statusOption) => (
-                              <DropdownMenuItem
-                                key={statusOption}
-                                onClick={() => {
-                                  void handleChangeSavedStatus(book, statusOption);
-                                }}
-                              >
-                                {statusLabel(statusOption)}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      isGridMode && (
+                        <div className="flex items-end justify-between gap-2">
+                          {inLibrary ? (
+                            <span className="rounded-full bg-green-600/85 px-2 py-1 text-xs text-white backdrop-blur-sm">
+                              En biblioteca
+                            </span>
+                          ) : (
+                            <StatusSelect
+                              value={currentStatus}
+                              onChange={(newStatus) =>
+                                setSelectedStatuses({ ...selectedStatuses, [book.id]: newStatus })
+                              }
+                              disabled={isSaving || isLoadingEditions}
+                              triggerClassName="h-8 w-[140px] border-border/40 bg-background/60 px-2 text-xs backdrop-blur-sm"
+                            />
+                          )}
+
+                          <Button
+                            type="button"
+                            size="icon"
+                            onClick={() => {
+                              if (inLibrary) {
+                                setBookToDelete(savedBook?.id ?? null);
+                                return;
+                              }
+
+                              void handleAddBookWithEditionSelection(book, currentStatus);
+                            }}
+                            disabled={isSaving || isLoadingEditions || isDeletingBook}
+                            className={`h-9 w-9 rounded-full shadow-sm ${inLibrary ? 'bg-destructive/85 text-destructive-foreground hover:bg-destructive' : 'bg-primary/85 text-primary-foreground hover:bg-primary'}`}
+                            aria-label={inLibrary ? 'Eliminar de la lista' : 'Agregar a la lista'}
+                          >
+                            {inLibrary ? (
+                              isDeletingThisBook ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />
+                            ) : isSaving ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Plus className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       )
                     }
                     actions={
+                      isListMode ? (
                       <div className="flex w-full flex-col gap-2">
                         <StatusSelect
                           value={currentStatus}
@@ -443,6 +503,7 @@ export function SearchBooks() {
                           {isSaving ? 'Guardando...' : inLibrary ? 'Actualizar' : 'Agregar'}
                         </Button>
                       </div>
+                      ) : undefined
                     }
                   />
                 );
@@ -497,6 +558,30 @@ export function SearchBooks() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!bookToDelete} onOpenChange={() => setBookToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar libro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción eliminará el libro de tu lista personal.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingBook}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { void handleDeleteBook(); }} disabled={isDeletingBook}>
+              {isDeletingBook ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Eliminando...
+                </>
+              ) : (
+                'Eliminar'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

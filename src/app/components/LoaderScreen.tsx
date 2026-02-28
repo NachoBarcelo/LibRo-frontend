@@ -147,6 +147,8 @@ export function LoaderScreen({ onLoadComplete }: LoaderScreenProps) {
     ],
   ];
 
+  const visibleShelves = 3;
+
   // Partículas flotantes de polvo
   const particles = Array.from({ length: 30 }, (_, i) => ({
     id: i,
@@ -293,7 +295,7 @@ export function LoaderScreen({ onLoadComplete }: LoaderScreenProps) {
       <div className="relative w-full h-full flex items-stretch justify-center gap-0">
         {/* Puerta izquierda - ocupa 50% de la pantalla */}
         <motion.div
-          className="relative w-1/2 h-full flex flex-col justify-between px-12 py-12"
+          className="relative w-1/2 h-full flex flex-col justify-between px-3 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-12"
           style={{
             background: 'linear-gradient(135deg, #8f1d39 0%, #6f1028 50%, #4a0d1d 100%)',
             boxShadow: 'inset 0 0 80px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.5)',
@@ -330,14 +332,14 @@ export function LoaderScreen({ onLoadComplete }: LoaderScreenProps) {
           </div>
 
           {/* Estantes con libros */}
-          <div className="relative z-10 space-y-8 mt-16">
-            {booksLeft.map((shelf, shelfIdx) => (
-              <div key={shelfIdx} className={`relative ${shelfIdx >= 3 ? 'hidden lg:block' : ''}`}>
+          <div className="relative z-10 mt-8 sm:mt-12 lg:mt-16 space-y-4 sm:space-y-6 lg:space-y-8">
+            {booksLeft.slice(0, visibleShelves).map((shelf, shelfIdx) => (
+              <div key={shelfIdx} className="relative scale-[0.62] sm:scale-[0.8] md:scale-100 origin-center">
                 {/* Estante */}
                 <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-b from-foreground/30 to-foreground/10 shadow-lg rounded-sm" />
                 
                 {/* Libros */}
-                <div className="flex items-end gap-1 mb-2 justify-end pr-3 pb-2 lg:pr-14 xl:pr-18">
+                <div className="flex items-end gap-1 mb-2 justify-center px-2 pb-2 md:justify-end md:pr-3 lg:pr-14 xl:pr-18">
                   {shelf.map((book, idx) => (
                     <motion.div
                       key={idx}
@@ -401,7 +403,7 @@ export function LoaderScreen({ onLoadComplete }: LoaderScreenProps) {
 
         {/* Puerta derecha - ocupa 50% de la pantalla */}
         <motion.div
-          className="relative w-1/2 h-full flex flex-col justify-between px-12 py-12"
+          className="relative w-1/2 h-full flex flex-col justify-between px-3 py-6 sm:px-6 sm:py-8 lg:px-12 lg:py-12"
           style={{
             background: 'linear-gradient(135deg, #4a0d1d 0%, #6f1028 50%, #8f1d39 100%)',
             boxShadow: 'inset 0 0 80px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.5)',
@@ -438,14 +440,14 @@ export function LoaderScreen({ onLoadComplete }: LoaderScreenProps) {
           </div>
 
           {/* Estantes con libros */}
-          <div className="relative z-10 space-y-8 mt-16">
-            {booksRight.map((shelf, shelfIdx) => (
-              <div key={shelfIdx} className={`relative ${shelfIdx >= 3 ? 'hidden lg:block' : ''}`}>
+          <div className="relative z-10 mt-8 sm:mt-12 lg:mt-16 space-y-4 sm:space-y-6 lg:space-y-8">
+            {booksRight.slice(0, visibleShelves).map((shelf, shelfIdx) => (
+              <div key={shelfIdx} className="relative scale-[0.62] sm:scale-[0.8] md:scale-100 origin-center">
                 {/* Estante */}
                 <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-b from-foreground/30 to-foreground/10 shadow-lg rounded-sm" />
                 
                 {/* Libros */}
-                <div className="flex items-end gap-1 mb-2 justify-start pl-3 pb-2 lg:pl-14 xl:pl-18">
+                <div className="flex items-end gap-1 mb-2 justify-center px-2 pb-2 md:justify-start md:pl-3 lg:pl-14 xl:pl-18">
                   {shelf.map((book, idx) => (
                     <motion.div
                       key={idx}

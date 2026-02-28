@@ -19,6 +19,7 @@ interface BookCardProps {
   menuTriggerClassName?: string;
   onMenuTriggerClick?: () => void;
   menuTriggerDisabled?: boolean;
+  minimalGridInfo?: boolean;
 }
 
 export function BookCard({
@@ -33,9 +34,11 @@ export function BookCard({
   menuTriggerLabel,
   menuTriggerClassName,
   onMenuTriggerClick,
-  menuTriggerDisabled
+  menuTriggerDisabled,
+  minimalGridInfo = false
 }: BookCardProps) {
   const isList = variant === 'list';
+  const isMinimalGrid = !isList && minimalGridInfo;
   const showQuickAction = isList && Boolean(menuTriggerIcon) && Boolean(onMenuTriggerClick);
   const showMenu = isList && Boolean(actions) && !showQuickAction;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -137,10 +140,9 @@ export function BookCard({
               )}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">{book.author}</p>
-            {book.year && (
-              <p className="mt-0.5 text-xs text-muted-foreground">{book.year}</p>
-            )}
-            {book.description && (
+            {badge && isList && <div className="mt-2">{badge}</div>}
+            
+            {!isMinimalGrid && book.description && (
               <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
                 {book.description}
               </p>
