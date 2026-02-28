@@ -4,10 +4,12 @@ import { PageHeader } from '../components/PageHeader';
 import { BookCard } from '../components/BookCard';
 import { StatusSelect } from '../components/StatusSelect';
 import { EmptyState } from '../components/EmptyState';
-import { BookMarked, Plus, Trash2, Loader2 } from 'lucide-react';
+import { BookMarked, Plus, Trash2, Loader2, Search, ChevronDown } from 'lucide-react';
 import { useLibrary } from '../context/LibraryContext';
 import { BookStatus } from '../types';
 import { Button } from '../components/ui/button';
+import { Checkbox } from '../components/ui/checkbox';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../components/ui/collapsible';
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Loader } from '../components/Loader';
 import { ErrorMessage } from '../components/ErrorMessage';
@@ -29,6 +31,9 @@ export function MyBooks() {
   type ViewMode = 'list' | 'grid-1' | 'grid-2' | 'grid-4';
 
   const [filter, setFilter] = useState<FilterStatus>('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
+  const [isAuthorFilterOpen, setIsAuthorFilterOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<string | null>(null);
   const [isUpdatingBookId, setIsUpdatingBookId] = useState<string | null>(null);
   const [isDeletingBook, setIsDeletingBook] = useState(false);
@@ -73,19 +78,46 @@ export function MyBooks() {
       setViewMode('grid-4');
       return;
     }
-    if (!isSmallUp && (viewMode === 'grid-2' || viewMode === 'grid-4')) {
-      setViewMode('grid-1');
-      return;
-    }
     if (!isDesktop && viewMode === 'grid-4') {
-      setViewMode(isSmallUp ? 'grid-2' : 'grid-1');
+      setViewMode('grid-2');
     }
   }, [isDesktop, isSmallUp, viewMode]);
 
-  const filteredBooks =
+  const statusFilteredBooks =
     filter === 'ALL'
       ? userBooks
       : userBooks.filter((book) => book.status === filter);
+
+  const authorOptions = Array.from(
+    new Map(
+      statusFilteredBooks.map((book) => {
+        const authorName = (book.author?.trim() || 'Autor desconocido');
+        return [authorName.toLowerCase(), authorName];
+      })
+    ).values()
+  ).sort((a, b) => a.localeCompare(b, 'es'));
+
+  const authorCounts = statusFilteredBooks.reduce<Record<string, number>>((accumulator, book) => {
+    const authorName = (book.author?.trim() || 'Autor desconocido');
+    accumulator[authorName] = (accumulator[authorName] ?? 0) + 1;
+    return accumulator;
+  }, {});
+
+  const authorFilteredBooks = selectedAuthors.length
+    ? statusFilteredBooks.filter((book) => selectedAuthors.includes(book.author?.trim() || 'Autor desconocido'))
+    : statusFilteredBooks;
+
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const filteredBooks = authorFilteredBooks.filter((book) => {
+    if (!normalizedSearchTerm) {
+      return true;
+    }
+
+    const title = book.title?.toLowerCase() ?? '';
+    const author = book.author?.toLowerCase() ?? '';
+
+    return title.includes(normalizedSearchTerm) || author.includes(normalizedSearchTerm);
+  });
 
   const handleStatusChange = async (bookId: string, newStatus: BookStatus) => {
     setIsUpdatingBookId(bookId);
@@ -121,16 +153,27 @@ export function MyBooks() {
     READ: userBooks.filter((b) => b.status === 'READ').length,
   };
 
+  const gridGapClass = viewMode === 'grid-2' ? 'gap-3 sm:gap-4' : 'gap-6';
+
   const listClassName = viewMode === 'list'
     ? 'flex flex-col gap-4'
-    : `grid gap-6 ${
+    : `grid ${gridGapClass} ${
         viewMode === 'grid-1'
           ? 'grid-cols-1'
           : viewMode === 'grid-2'
-          ? 'grid-cols-1 sm:grid-cols-2'
+          ? 'grid-cols-2'
           : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
       }`;
   const cardVariant = viewMode === 'list' ? 'list' : 'grid';
+
+  const toggleAuthorFilter = (authorName: string, checked: boolean) => {
+    if (checked) {
+      setSelectedAuthors((current) => [...current, authorName]);
+      return;
+    }
+
+    setSelectedAuthors((current) => current.filter((author) => author !== authorName));
+  };
 
   return (
     <div className="min-h-screen">
@@ -198,16 +241,14 @@ export function MyBooks() {
                 1 col
               </Button>
             )}
-            {isSmallUp && (
-              <Button
-                type="button"
-                size="sm"
-                variant={viewMode === 'grid-2' ? 'secondary' : 'ghost'}
-                onClick={() => setViewMode('grid-2')}
-              >
-                2 col
-              </Button>
-            )}
+            <Button
+              type="button"
+              size="sm"
+              variant={viewMode === 'grid-2' ? 'secondary' : 'ghost'}
+              onClick={() => setViewMode('grid-2')}
+            >
+              2 col
+            </Button>
             {isDesktop && (
               <Button
                 type="button"
@@ -221,28 +262,125 @@ export function MyBooks() {
           </div>
         </div>
 
+        <div className="mb-6">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Buscar por título o autor..."
+              className="h-10 w-full rounded-md border border-primary/20 bg-primary/10 pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/30"
+            />
+          </label>
+        </div>
+
+        <Collapsible
+          open={isAuthorFilterOpen}
+          onOpenChange={setIsAuthorFilterOpen}
+          className="mb-6 rounded-lg border border-border/60 bg-background/60"
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-accent/20"
+            >
+              <div>
+                <p className="text-sm">Filtrar por autor</p>
+                <p className="text-xs text-muted-foreground">
+                  {selectedAuthors.length > 0
+                    ? `${selectedAuthors.length} seleccionado(s)`
+                    : `${authorOptions.length} autores disponibles`}
+                </p>
+              </div>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isAuthorFilterOpen ? 'rotate-180' : ''}`} />
+            </button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent>
+            <div className="border-t border-border/60 p-4">
+              <div className="mb-3 flex items-center justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedAuthors([])}
+                  disabled={selectedAuthors.length === 0}
+                >
+                  Todos
+                </Button>
+              </div>
+
+              {authorOptions.length > 0 ? (
+                <div className="grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
+                  {authorOptions.map((authorName) => {
+                    const isChecked = selectedAuthors.includes(authorName);
+
+                    return (
+                      <label
+                        key={authorName}
+                        className="flex cursor-pointer items-center justify-between rounded-md border border-border/60 px-3 py-2 text-sm hover:bg-accent/30"
+                      >
+                        <span className="truncate pr-3">{authorName}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">{authorCounts[authorName] ?? 0}</span>
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={(value) => toggleAuthorFilter(authorName, Boolean(value))}
+                            aria-label={`Filtrar por ${authorName}`}
+                          />
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No hay autores disponibles para este filtro.</p>
+              )}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+
         {filteredBooks.length === 0 ? (
           <EmptyState
             icon={<BookMarked className="h-10 w-10 text-muted-foreground" />}
             title={
-              filter === 'ALL'
-                ? 'No tienes libros en tu lista'
-                : `No tienes libros ${
-                    filter === 'FAVORITE'
-                      ? 'favoritos'
-                      : filter === 'TO_READ'
-                      ? 'por leer'
-                      : 'leídos'
-                  }`
+              normalizedSearchTerm
+                ? 'No encontramos coincidencias'
+                : filter === 'ALL'
+                  ? 'No tienes libros en tu lista'
+                  : `No tienes libros ${
+                      filter === 'FAVORITE'
+                        ? 'favoritos'
+                        : filter === 'TO_READ'
+                        ? 'por leer'
+                        : 'leídos'
+                    }`
             }
-            description="Agrega libros desde el buscador y organízalos por estado."
+            description={
+              normalizedSearchTerm
+                ? 'Prueba con otro título o autor, o limpia la búsqueda.'
+                : selectedAuthors.length > 0
+                  ? 'No hay libros para los autores seleccionados con este estado.'
+                : 'Agrega libros desde el buscador y organízalos por estado.'
+            }
             action={
-              <Button asChild>
-                <Link to="/search">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Buscar libros
-                </Link>
-              </Button>
+              normalizedSearchTerm ? (
+                <Button type="button" variant="outline" onClick={() => setSearchTerm('')}>
+                  Limpiar búsqueda
+                </Button>
+              ) : selectedAuthors.length > 0 ? (
+                <Button type="button" variant="outline" onClick={() => setSelectedAuthors([])}>
+                  Limpiar autores
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link to="/search">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Buscar libros
+                  </Link>
+                </Button>
+              )
             }
           />
         ) : (
@@ -257,6 +395,49 @@ export function MyBooks() {
                 const isGridMode = cardVariant === 'grid';
                 const isDeletingThisBook = isDeletingBook && bookToDelete === book.id;
 
+                if (isGridMode) {
+                  return (
+                    <div
+                      key={book.id}
+                      className="group relative overflow-hidden rounded-lg border border-border/60 bg-muted transition-all hover:border-primary/60 hover:shadow-md"
+                    >
+                      <Link
+                        to={`/books/${book.id}`}
+                        aria-label={`Ver detalle de ${book.title}`}
+                        className="block aspect-[2/3] w-full"
+                      >
+                        {book.cover ? (
+                          <img
+                            src={book.cover}
+                            alt={book.title}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 text-sm text-muted-foreground">
+                            Sin portada
+                          </div>
+                        )}
+                      </Link>
+
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/98 via-background/80 to-transparent p-3 sm:p-4">
+                        <p className="line-clamp-1 text-sm sm:text-base font-medium text-foreground drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">{book.title}</p>
+                        <p className="line-clamp-1 text-xs sm:text-sm text-foreground/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{book.author}</p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        size="icon"
+                        onClick={() => setBookToDelete(book.id)}
+                        disabled={isDeletingBook}
+                        className="absolute bottom-3 right-3 h-9 w-9 rounded-full bg-destructive/85 text-destructive-foreground shadow-sm hover:bg-destructive"
+                        aria-label="Eliminar de la lista"
+                      >
+                        {isDeletingThisBook ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  );
+                }
+
                 return (
                   <BookCard
                     key={book.id}
@@ -267,34 +448,7 @@ export function MyBooks() {
                     menuTriggerClassName="text-destructive hover:bg-destructive/10"
                     onMenuTriggerClick={() => setBookToDelete(book.id)}
                     menuTriggerDisabled={isDeletingBook}
-                    minimalGridInfo={isGridMode}
                     book={book}
-                    badge={
-                      isListMode ? (
-                        <span className="rounded-full bg-green-600 px-2 py-1 text-xs text-white">
-                          En biblioteca
-                        </span>
-                      ) : undefined
-                    }
-                    coverOverlay={
-                      isGridMode ? (
-                        <div className="flex items-end justify-between gap-2">
-                          <span className="rounded-full bg-green-600/85 px-2 py-1 text-xs text-white backdrop-blur-sm">
-                            En biblioteca
-                          </span>
-                          <Button
-                            type="button"
-                            size="icon"
-                            onClick={() => setBookToDelete(book.id)}
-                            disabled={isDeletingBook}
-                            className="h-9 w-9 rounded-full bg-destructive/85 text-destructive-foreground shadow-sm hover:bg-destructive"
-                            aria-label="Eliminar de la lista"
-                          >
-                            {isDeletingThisBook ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                          </Button>
-                        </div>
-                      ) : undefined
-                    }
                     actions={
                       isListMode ? (
                         <div className="flex w-full flex-col gap-2">

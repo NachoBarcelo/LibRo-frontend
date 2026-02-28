@@ -48,12 +48,6 @@ export function SearchBooks() {
     }
     return window.innerWidth >= 1024;
   });
-  const [isSmallUp, setIsSmallUp] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return window.innerWidth >= 640;
-  });
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window === 'undefined') {
       return 'grid-1';
@@ -68,17 +62,13 @@ export function SearchBooks() {
 
   useEffect(() => {
     const desktopMql = window.matchMedia('(min-width: 1024px)');
-    const smallMql = window.matchMedia('(min-width: 640px)');
     const onChange = () => {
       setIsDesktop(desktopMql.matches);
-      setIsSmallUp(smallMql.matches);
     };
     onChange();
     desktopMql.addEventListener('change', onChange);
-    smallMql.addEventListener('change', onChange);
     return () => {
       desktopMql.removeEventListener('change', onChange);
-      smallMql.removeEventListener('change', onChange);
     };
   }, []);
 
@@ -87,14 +77,10 @@ export function SearchBooks() {
       setViewMode('grid-4');
       return;
     }
-    if (!isSmallUp && (viewMode === 'grid-2' || viewMode === 'grid-4')) {
-      setViewMode('grid-1');
-      return;
-    }
     if (!isDesktop && viewMode === 'grid-4') {
-      setViewMode(isSmallUp ? 'grid-2' : 'grid-1');
+      setViewMode('grid-2');
     }
-  }, [isDesktop, isSmallUp, viewMode]);
+  }, [isDesktop, viewMode]);
 
   const handleSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) {
@@ -292,13 +278,15 @@ export function SearchBooks() {
     });
   };
 
+  const gridGapClass = viewMode === 'grid-2' ? 'gap-3 sm:gap-4' : 'gap-6';
+
   const listClassName = viewMode === 'list'
     ? 'flex flex-col gap-4'
-    : `grid gap-6 ${
+    : `grid ${gridGapClass} ${
         viewMode === 'grid-1'
           ? 'grid-cols-1'
           : viewMode === 'grid-2'
-          ? 'grid-cols-1 sm:grid-cols-2'
+          ? 'grid-cols-2'
           : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
       }`;
   const cardVariant = viewMode === 'list' ? 'list' : 'grid';
@@ -365,16 +353,14 @@ export function SearchBooks() {
                     1 col
                   </Button>
                 )}
-                {isSmallUp && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={viewMode === 'grid-2' ? 'secondary' : 'ghost'}
-                    onClick={() => setViewMode('grid-2')}
-                  >
-                    2 col
-                  </Button>
-                )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={viewMode === 'grid-2' ? 'secondary' : 'ghost'}
+                  onClick={() => setViewMode('grid-2')}
+                >
+                  2 col
+                </Button>
                 {isDesktop && (
                   <Button
                     type="button"
@@ -398,42 +384,31 @@ export function SearchBooks() {
                 const isGridMode = cardVariant === 'grid';
                 const isDeletingThisBook = isDeletingBook && bookToDelete === savedBook?.id;
 
-                return (
-                  <BookCard
-                    key={book.id}
-                    variant={cardVariant}
-                    menuTriggerIcon={
-                      inLibrary
-                        ? isDeletingThisBook
-                          ? <Loader2 className="h-4 w-4 animate-spin text-destructive" />
-                          : <Trash2 className="h-4 w-4 text-destructive" />
-                        : isSaving
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <Plus className="h-4 w-4" />
-                    }
-                    menuTriggerLabel={inLibrary ? 'Eliminar libro' : 'Agregar a favoritos'}
-                    menuTriggerClassName={inLibrary ? 'text-destructive hover:bg-destructive/10' : undefined}
-                    onMenuTriggerClick={() => {
-                      if (inLibrary) {
-                        setBookToDelete(savedBook?.id ?? null);
-                        return;
-                      }
+                if (isGridMode) {
+                  return (
+                    <div
+                      key={book.id}
+                      className="group relative overflow-hidden rounded-lg border border-border/60 bg-muted transition-all hover:border-primary/60 hover:shadow-md"
+                    >
+                      <div className="aspect-[2/3] w-full">
+                        {book.cover ? (
+                          <img
+                            src={book.cover}
+                            alt={book.title}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 text-sm text-muted-foreground">
+                            Sin portada
+                          </div>
+                        )}
+                      </div>
 
-                      void handleAddBookWithEditionSelection(book, 'FAVORITE');
-                    }}
-                    menuTriggerDisabled={isSaving || isLoadingEditions || isDeletingBook}
-                    minimalGridInfo={isGridMode}
-                    book={book}
-                    badge={
-                      isListMode && inLibrary ? (
-                        <span className={`rounded-full px-2 py-1 text-xs ${inLibrary ? 'bg-green-600 text-white' : 'bg-muted text-muted-foreground'}`}>
-                          En biblioteca
-                        </span>
-                      ) : undefined
-                    }
-                    coverOverlay={
-                      isGridMode && (
-                        <div className="flex items-end justify-between gap-2">
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/98 via-background/80 to-transparent p-3 sm:p-4">
+                        <p className="line-clamp-1 text-sm sm:text-base font-medium text-foreground drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">{book.title}</p>
+                        <p className="line-clamp-1 text-xs sm:text-sm text-foreground/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{book.author}</p>
+
+                        <div className="mt-2 flex items-end justify-between gap-2">
                           {inLibrary ? (
                             <span className="rounded-full bg-green-600/85 px-2 py-1 text-xs text-white backdrop-blur-sm">
                               En biblioteca
@@ -445,7 +420,7 @@ export function SearchBooks() {
                                 setSelectedStatuses({ ...selectedStatuses, [book.id]: newStatus })
                               }
                               disabled={isSaving || isLoadingEditions}
-                              triggerClassName="h-8 w-[140px] border-border/40 bg-background/60 px-2 text-xs backdrop-blur-sm"
+                              triggerClassName="h-8 w-[120px] border-border/40 bg-background/60 px-2 text-xs backdrop-blur-sm"
                             />
                           )}
 
@@ -473,7 +448,42 @@ export function SearchBooks() {
                             )}
                           </Button>
                         </div>
-                      )
+                      </div>
+                    </div>
+                  );
+                }
+
+                return (
+                  <BookCard
+                    key={book.id}
+                    variant={cardVariant}
+                    menuTriggerIcon={
+                      inLibrary
+                        ? isDeletingThisBook
+                          ? <Loader2 className="h-4 w-4 animate-spin text-destructive" />
+                          : <Trash2 className="h-4 w-4 text-destructive" />
+                        : isSaving
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <Plus className="h-4 w-4" />
+                    }
+                    menuTriggerLabel={inLibrary ? 'Eliminar libro' : 'Agregar a favoritos'}
+                    menuTriggerClassName={inLibrary ? 'text-destructive hover:bg-destructive/10' : undefined}
+                    onMenuTriggerClick={() => {
+                      if (inLibrary) {
+                        setBookToDelete(savedBook?.id ?? null);
+                        return;
+                      }
+
+                      void handleAddBookWithEditionSelection(book, 'FAVORITE');
+                    }}
+                    menuTriggerDisabled={isSaving || isLoadingEditions || isDeletingBook}
+                    book={book}
+                    badge={
+                      isListMode && inLibrary ? (
+                        <span className={`rounded-full px-2 py-1 text-xs ${inLibrary ? 'bg-green-600 text-white' : 'bg-muted text-muted-foreground'}`}>
+                          En biblioteca
+                        </span>
+                      ) : undefined
                     }
                     actions={
                       isListMode ? (

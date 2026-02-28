@@ -14,11 +14,11 @@ export function TopBar() {
   const location = useLocation();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-primary/30 bg-primary text-primary-foreground backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="relative">
-            <BookOpen className="h-7 w-7 text-primary transition-transform group-hover:scale-110" />
+            <BookOpen className="h-7 w-7 text-primary-foreground transition-transform group-hover:scale-110" />
           </div>
           <div className="hidden sm:block">
             <span className="text-xl font-bold tracking-tight">LibRo</span>
