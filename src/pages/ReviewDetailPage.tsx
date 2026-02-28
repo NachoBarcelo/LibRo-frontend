@@ -7,10 +7,10 @@ import { getErrorMessage } from '@/shared/utils/error';
 
 export function ReviewDetailPage() {
   const params = useParams();
-  const reviewId = Number(params.id);
+  const reviewId = params.id;
   const navigate = useNavigate();
 
-  const reviewQuery = useReview(Number.isNaN(reviewId) ? undefined : reviewId);
+  const reviewQuery = useReview(reviewId);
   const deleteMutation = useDeleteReview();
 
   return (

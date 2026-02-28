@@ -53,8 +53,9 @@ export function ReviewForm({
     }
 
     if (mode === 'create') {
+      const normalizedBookId = bookId.trim();
       onSubmit({
-        bookId: Number.isNaN(Number(bookId)) ? bookId : Number(bookId),
+        bookId: normalizedBookId,
         title: title.trim(),
         content: content.trim(),
         rating: normalizedRating

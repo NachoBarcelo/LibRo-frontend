@@ -9,12 +9,12 @@ import { getErrorMessage } from '@/shared/utils/error';
 export function ReviewEditPage() {
   const params = useParams();
   const navigate = useNavigate();
-  const reviewId = Number(params.id);
+  const reviewId = params.id;
 
-  const reviewQuery = useReview(Number.isNaN(reviewId) ? undefined : reviewId);
-  const updateReviewMutation = useUpdateReview(reviewId);
+  const reviewQuery = useReview(reviewId);
+  const updateReviewMutation = useUpdateReview(reviewId ?? '');
 
-  if (Number.isNaN(reviewId)) {
+  if (!reviewId) {
     return (
       <section className="stack">
         <PageHeader title="Editar Reseña" actions={<Link to="/reviews">Volver</Link>} />

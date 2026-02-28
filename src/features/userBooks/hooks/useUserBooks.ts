@@ -31,7 +31,7 @@ export function useDeleteUserBook() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => deleteUserBook(id),
+    mutationFn: (id: string) => deleteUserBook(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userBooksQueryKeys.all });
     }
