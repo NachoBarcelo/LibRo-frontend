@@ -38,6 +38,22 @@ interface RawBook {
   genres?: string[];
 }
 
+interface RawNewRelease {
+  titulo?: string;
+  autor?: string;
+  anio?: number;
+  imagen?: string;
+  workKey?: string;
+}
+
+export interface NewRelease {
+  titulo: string;
+  autor: string;
+  anio: number;
+  imagen: string;
+  workKey: string;
+}
+
 interface RawBookDetailUserBook {
   id?: string | number;
   bookId?: string | number;
@@ -291,4 +307,25 @@ export async function getBookDetailById(id: string): Promise<BookDetail> {
 
   const rawData: RawBook = response.data?.data ?? response.data;
   return normalizeBookDetail(rawData);
+}
+
+export async function getNewReleases(): Promise<NewRelease[]> {
+  try {
+    const response = await httpClient.get('/books/new-releases');
+    const payload = response.data?.data ?? response.data;
+    const releasesArray: RawNewRelease[] = Array.isArray(payload) ? payload : [];
+
+    return releasesArray
+      .filter((item) => typeof item.imagen === 'string' && item.imagen.trim().length > 0)
+      .map((item) => ({
+        titulo: item.titulo ?? 'Sin título',
+        autor: item.autor ?? '',
+        anio: Number(item.anio ?? 0),
+        imagen: item.imagen ?? '',
+        workKey: item.workKey ?? ''
+      }))
+      .slice(0, 10);
+  } catch {
+    return [];
+  }
 }

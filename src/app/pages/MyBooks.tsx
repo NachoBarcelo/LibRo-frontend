@@ -27,6 +27,10 @@ import { toast } from 'sonner';
 
 type FilterStatus = 'ALL' | BookStatus;
 
+function normalizeAuthorName(authorName?: string): string {
+  return (authorName?.trim() || 'Autor desconocido').toLocaleLowerCase('es');
+}
+
 export function MyBooks() {
   type ViewMode = 'list' | 'grid-1' | 'grid-2' | 'grid-4';
 
@@ -92,19 +96,20 @@ export function MyBooks() {
     new Map(
       statusFilteredBooks.map((book) => {
         const authorName = (book.author?.trim() || 'Autor desconocido');
-        return [authorName.toLowerCase(), authorName];
+        return [normalizeAuthorName(authorName), authorName];
       })
     ).values()
   ).sort((a, b) => a.localeCompare(b, 'es'));
 
   const authorCounts = statusFilteredBooks.reduce<Record<string, number>>((accumulator, book) => {
     const authorName = (book.author?.trim() || 'Autor desconocido');
-    accumulator[authorName] = (accumulator[authorName] ?? 0) + 1;
+    const normalizedAuthor = normalizeAuthorName(authorName);
+    accumulator[normalizedAuthor] = (accumulator[normalizedAuthor] ?? 0) + 1;
     return accumulator;
   }, {});
 
   const authorFilteredBooks = selectedAuthors.length
-    ? statusFilteredBooks.filter((book) => selectedAuthors.includes(book.author?.trim() || 'Autor desconocido'))
+    ? statusFilteredBooks.filter((book) => selectedAuthors.includes(normalizeAuthorName(book.author)))
     : statusFilteredBooks;
 
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -167,12 +172,16 @@ export function MyBooks() {
   const cardVariant = viewMode === 'list' ? 'list' : 'grid';
 
   const toggleAuthorFilter = (authorName: string, checked: boolean) => {
+    const normalizedAuthor = normalizeAuthorName(authorName);
+
     if (checked) {
-      setSelectedAuthors((current) => [...current, authorName]);
+      setSelectedAuthors((current) =>
+        current.includes(normalizedAuthor) ? current : [...current, normalizedAuthor]
+      );
       return;
     }
 
-    setSelectedAuthors((current) => current.filter((author) => author !== authorName));
+    setSelectedAuthors((current) => current.filter((author) => author !== normalizedAuthor));
   };
 
   return (
@@ -314,7 +323,8 @@ export function MyBooks() {
               {authorOptions.length > 0 ? (
                 <div className="grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 lg:grid-cols-3">
                   {authorOptions.map((authorName) => {
-                    const isChecked = selectedAuthors.includes(authorName);
+                    const normalizedAuthor = normalizeAuthorName(authorName);
+                    const isChecked = selectedAuthors.includes(normalizedAuthor);
 
                     return (
                       <label
@@ -323,7 +333,7 @@ export function MyBooks() {
                       >
                         <span className="truncate pr-3">{authorName}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{authorCounts[authorName] ?? 0}</span>
+                          <span className="text-xs text-muted-foreground">{authorCounts[normalizedAuthor] ?? 0}</span>
                           <Checkbox
                             checked={isChecked}
                             onCheckedChange={(value) => toggleAuthorFilter(authorName, Boolean(value))}

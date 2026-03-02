@@ -5,6 +5,7 @@ import { useLibrary } from '../context/LibraryContext';
 import { Loader } from '../components/Loader';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Carousel, CarouselApi, CarouselContent, CarouselItem } from '../components/ui/carousel';
+import { getNewReleases, NewRelease } from '../../api/services/booksService';
 
 function AutoFitTitle({ title }: { title: string }) {
   const titleRef = React.useRef<HTMLHeadingElement | null>(null);
@@ -67,6 +68,10 @@ export function Dashboard() {
   const { userBooks, isLoading, error, reloadAll } = useLibrary();
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [newReleasesCarouselApi, setNewReleasesCarouselApi] = useState<CarouselApi>();
+  const [currentNewReleaseSlide, setCurrentNewReleaseSlide] = useState(0);
+  const [newReleases, setNewReleases] = useState<NewRelease[]>([]);
+  const [isLoadingNewReleases, setIsLoadingNewReleases] = useState(true);
 
   const featuredBooks = userBooks.slice(0, 8);
 
@@ -102,6 +107,62 @@ export function Dashboard() {
       window.clearInterval(autoplayInterval);
     };
   }, [carouselApi, featuredBooks.length]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadNewReleases = async () => {
+      try {
+        const releases = await getNewReleases();
+        if (isMounted) {
+          setNewReleases(releases);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingNewReleases(false);
+        }
+      }
+    };
+
+    void loadNewReleases();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!newReleasesCarouselApi) {
+      return;
+    }
+
+    const updateCurrentSlide = () => {
+      setCurrentNewReleaseSlide(newReleasesCarouselApi.selectedScrollSnap());
+    };
+
+    updateCurrentSlide();
+    newReleasesCarouselApi.on('select', updateCurrentSlide);
+    newReleasesCarouselApi.on('reInit', updateCurrentSlide);
+
+    return () => {
+      newReleasesCarouselApi.off('select', updateCurrentSlide);
+      newReleasesCarouselApi.off('reInit', updateCurrentSlide);
+    };
+  }, [newReleasesCarouselApi]);
+
+  useEffect(() => {
+    if (!newReleasesCarouselApi || newReleases.length <= 1) {
+      return;
+    }
+
+    const autoplayInterval = window.setInterval(() => {
+      newReleasesCarouselApi.scrollNext();
+    }, 5500);
+
+    return () => {
+      window.clearInterval(autoplayInterval);
+    };
+  }, [newReleasesCarouselApi, newReleases.length]);
 
   const quickActions = [
     {
@@ -280,12 +341,66 @@ export function Dashboard() {
         </section>
 
         <section className="relative mt-6">
-          <h2 className="mb-3 text-xl font-semibold">Algo <span className="text-base text-primary-foreground/75">(con menor importancia)</span></h2>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="h-20 rounded-2xl border border-primary-foreground/30" />
-            <div className="h-20 rounded-2xl border border-primary-foreground/30" />
-            <div className="h-20 rounded-2xl border border-primary-foreground/30" />
-          </div>
+          <h2 className="mb-3 text-xl font-semibold">Novedades</h2>
+
+          {isLoadingNewReleases ? (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} className="h-44 animate-pulse rounded-2xl border border-primary-foreground/25 bg-primary-foreground/10" />
+              ))}
+            </div>
+          ) : newReleases.length === 0 ? (
+            <p className="rounded-2xl border border-primary-foreground/30 px-4 py-5 text-sm text-primary-foreground/85">
+              No hay novedades por ahora.
+            </p>
+          ) : (
+            <>
+              <Carousel
+                setApi={setNewReleasesCarouselApi}
+                opts={{ align: 'start', loop: newReleases.length > 1 }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {newReleases.map((book) => (
+                    <CarouselItem
+                      key={`${book.workKey}-${book.titulo}`}
+                      className="basis-1/2 lg:basis-1/3"
+                    >
+                      <article className="overflow-hidden rounded-2xl border border-primary-foreground/30 bg-primary-foreground/10">
+                        <div className="flex aspect-[2/3] w-full items-center justify-center bg-primary-foreground/8 p-2">
+                          <img
+                            src={book.imagen}
+                            alt={book.titulo}
+                            className="h-full w-full object-contain"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="space-y-1 p-3">
+                          <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{book.titulo}</h3>
+                          <p className="line-clamp-1 text-xs text-primary-foreground/80">{book.autor || 'Autor desconocido'}</p>
+                          <p className="text-xs text-primary-foreground/70">{book.anio || 'Año s/d'}</p>
+                        </div>
+                      </article>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+
+              <div className="mt-3 flex items-center justify-center gap-1.5">
+                {newReleases.map((book, index) => (
+                  <button
+                    key={`${book.workKey}-dot-${index}`}
+                    type="button"
+                    aria-label={`Ir a novedad ${index + 1}`}
+                    onClick={() => newReleasesCarouselApi?.scrollTo(index)}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      currentNewReleaseSlide === index ? 'w-5 bg-primary-foreground' : 'bg-primary-foreground/45'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </section>
       </div>
     </div>
