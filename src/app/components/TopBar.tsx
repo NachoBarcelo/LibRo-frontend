@@ -55,8 +55,8 @@ export function TopBar() {
         </div>
       </header>
 
-      <nav className="fixed inset-x-0 bottom-3 z-50 px-3 md:hidden">
-        <div className="mx-auto max-w-md rounded-2xl border border-primary-foreground/20 bg-primary/95 p-1.5 shadow-lg shadow-primary/30 backdrop-blur">
+      <nav className="fixed inset-x-0 bottom-0 z-50 md:hidden">
+        <div className="w-full border-t border-primary-foreground/20 bg-primary/95 px-3 py-1.5 backdrop-blur">
           <div className="grid h-16 grid-cols-4">
           {navigation.map((item) => {
             const Icon = item.icon;

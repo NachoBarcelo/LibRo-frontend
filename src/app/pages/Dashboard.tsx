@@ -6,6 +6,62 @@ import { Loader } from '../components/Loader';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Carousel, CarouselApi, CarouselContent, CarouselItem } from '../components/ui/carousel';
 
+function AutoFitTitle({ title }: { title: string }) {
+  const titleRef = React.useRef<HTMLHeadingElement | null>(null);
+  const [fontSizePx, setFontSizePx] = useState(24);
+
+  useEffect(() => {
+    const element = titleRef.current;
+    if (!element) {
+      return;
+    }
+
+    const fitText = () => {
+      const viewportWidth = window.innerWidth;
+      const maxSize = viewportWidth >= 1024 ? 30 : viewportWidth >= 640 ? 26 : 22;
+      const minSize = viewportWidth >= 1024 ? 20 : 16;
+
+      let nextSize = maxSize;
+      element.style.fontSize = `${nextSize}px`;
+
+      while (
+        nextSize > minSize &&
+        (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
+      ) {
+        nextSize -= 1;
+        element.style.fontSize = `${nextSize}px`;
+      }
+
+      setFontSizePx(nextSize);
+    };
+
+    const rafId = window.requestAnimationFrame(fitText);
+    const resizeObserver = new ResizeObserver(() => {
+      fitText();
+    });
+
+    resizeObserver.observe(element);
+    window.addEventListener('resize', fitText);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', fitText);
+    };
+  }, [title]);
+
+  return (
+    <h3
+      ref={titleRef}
+      className="line-clamp-2 font-semibold leading-tight"
+      style={{ fontSize: `${fontSizePx}px` }}
+      title={title}
+    >
+      {title}
+    </h3>
+  );
+}
+
 export function Dashboard() {
   const location = useLocation();
   const { userBooks, isLoading, error, reloadAll } = useLibrary();
@@ -86,7 +142,7 @@ export function Dashboard() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-primary pb-24 text-primary-foreground md:pb-8">
+    <div className="relative min-h-screen overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
       <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
 
       <div className="relative mx-auto w-full max-w-5xl px-5 py-5 sm:px-6 sm:py-6">
@@ -168,7 +224,7 @@ export function Dashboard() {
                             </div>
                             <div className="flex min-w-0 flex-1 flex-col justify-between">
                               <div>
-                                <h3 className="line-clamp-2 text-2xl font-semibold leading-tight md:text-3xl">{book.title}</h3>
+                                <AutoFitTitle title={book.title} />
                                 <p className="mt-2 line-clamp-2 text-sm text-primary-foreground/85 md:text-base">{book.author}</p>
                               </div>
                               <Link

@@ -10,7 +10,7 @@ export function Layout() {
   return (
     <div className={`min-h-screen ${isDashboard ? 'bg-primary' : 'bg-background'}`}>
       <TopBar />
-      <main className="pb-24 md:pb-0">
+      <main className={isDashboard ? 'pb-10' : 'pb-24 md:pb-0'}>
         <Outlet />
       </main>
       <Toaster />
