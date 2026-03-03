@@ -195,7 +195,23 @@ export function LibraryProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchUserBooks = useCallback(async () => {
-    const response = await httpClient.get('/user-books');
+    let response;
+
+    try {
+      response = await httpClient.get('/user-books');
+    } catch (firstError) {
+      const status = (firstError as { response?: { status?: number } })?.response?.status;
+
+      if (status !== 500) {
+        throw firstError;
+      }
+
+      await new Promise((resolve) => {
+        window.setTimeout(resolve, 500);
+      });
+
+      response = await httpClient.get('/user-books');
+    }
     
     // Manejar formato { success: true, data: [...] }
     let userBooksArray: RawUserBook[] = [];

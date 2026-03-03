@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Home, Search, BookMarked, FileText, Sparkles } from 'lucide-react';
+import { Home, Search, BookMarked, FileText, Sparkles, BarChart3 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface PageHeaderProps {
@@ -16,6 +16,7 @@ export function PageHeader({ title, subtitle, actions, icon }: PageHeaderProps) 
     { name: 'Inicio', href: '/', icon: Home },
     { name: 'Buscar', href: '/search', icon: Search },
     { name: 'Mis Libros', href: '/my-books', icon: BookMarked },
+    { name: 'Estadísticas', href: '/stats', icon: BarChart3 },
     { name: 'Reseñas', href: '/reviews', icon: FileText },
   ];
 

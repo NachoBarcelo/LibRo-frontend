@@ -10,6 +10,7 @@ export function Layout() {
     isDashboard ||
     location.pathname === '/search' ||
     location.pathname === '/my-books' ||
+    location.pathname === '/stats' ||
     location.pathname === '/reviews' ||
     location.pathname.startsWith('/reviews/') ||
     location.pathname.startsWith('/books/');

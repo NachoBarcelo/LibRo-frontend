@@ -19,7 +19,7 @@ export function Loader({ text = 'Cargando...', size = 'md', variant = 'default' 
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-12">
       <Loader2 className={`${sizeClasses[size]} animate-spin ${isOnPrimary ? 'text-primary-foreground' : 'text-primary'}`} />
-      <p className={`text-sm ${isOnPrimary ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>{text}</p>
+      <p className={`text-sm ${isOnPrimary ? 'text-primary-foreground/80' : 'text-primary-foreground'}`}>{text}</p>
     </div>
   );
 }

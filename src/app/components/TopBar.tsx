@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Search, BookMarked, FileText, Home } from 'lucide-react';
+import { Search, BookMarked, FileText, Home, BarChart3 } from 'lucide-react';
 
 const navigation = [
   { name: 'Inicio', href: '/', icon: Home },
   { name: 'Buscar', href: '/search', icon: Search },
   { name: 'Mis Libros', href: '/my-books', icon: BookMarked },
+  { name: 'Stats', href: '/stats', icon: BarChart3 },
   { name: 'Reseñas', href: '/reviews', icon: FileText },
 ];
 
@@ -24,7 +25,7 @@ export function TopBar() {
     <>
       <nav className="fixed inset-x-0 bottom-0 z-50 md:hidden">
         <div className="w-full border-t border-primary-foreground/20 bg-primary/95 px-3 py-1.5 backdrop-blur">
-          <div className="grid h-16 grid-cols-4">
+          <div className="grid h-16 grid-cols-5">
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = isItemActive(item.href);

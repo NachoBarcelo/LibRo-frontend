@@ -183,7 +183,7 @@ export function Dashboard() {
     {
       title: 'Estadísticas',
       icon: BarChart3,
-      href: '#estadisticas',
+      href: '/stats',
     },
   ];
 
@@ -191,6 +191,7 @@ export function Dashboard() {
     { name: 'Inicio', href: '/', icon: Home },
     { name: 'Buscar', href: '/search', icon: Search },
     { name: 'Mis Libros', href: '/my-books', icon: BookMarked },
+    { name: 'Estadísticas', href: '/stats', icon: BarChart3 },
     { name: 'Reseñas', href: '/reviews', icon: FileText },
   ];
 
