@@ -56,8 +56,8 @@ function extractGenresFromOpenLibrary(openLibrary: Record<string, unknown> | nul
 }
 
 const statusLabels: Record<BookStatus, string> = {
-  FAVORITE: 'Favorito',
-  TO_READ: 'Por leer',
+  FAVORITE: 'Quiero',
+  TO_READ: 'Por leer (Tengo)',
   READ: 'Leído'
 };
 

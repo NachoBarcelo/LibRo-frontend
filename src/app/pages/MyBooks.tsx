@@ -214,7 +214,7 @@ export function MyBooks() {
                 Todos ({statusCounts.ALL})
               </TabsTrigger>
               <TabsTrigger className="text-primary-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground" value="FAVORITE">
-                Favoritos ({statusCounts.FAVORITE})
+                Quiero ({statusCounts.FAVORITE})
               </TabsTrigger>
               <TabsTrigger className="text-primary-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground" value="TO_READ">
                 Por leer ({statusCounts.TO_READ})
@@ -359,9 +359,9 @@ export function MyBooks() {
                   ? 'No tienes libros en tu lista'
                   : `No tienes libros ${
                       filter === 'FAVORITE'
-                        ? 'favoritos'
+                        ? 'en quiero'
                         : filter === 'TO_READ'
-                        ? 'por leer'
+                        ? 'por leer (tengo)'
                         : 'leídos'
                     }`
             }

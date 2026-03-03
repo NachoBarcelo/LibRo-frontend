@@ -58,7 +58,7 @@ export function SearchBooks() {
   const { addBook, updateBookStatus, removeBook, userBooks } = useLibrary();
 
   const statusLabel = (status: BookStatus) =>
-    status === 'FAVORITE' ? 'Favorito' : status === 'TO_READ' ? 'Por leer' : 'Leído';
+    status === 'FAVORITE' ? 'Quiero' : status === 'TO_READ' ? 'Por leer (Tengo)' : 'Leído';
 
   useEffect(() => {
     const desktopMql = window.matchMedia('(min-width: 1024px)');
@@ -128,8 +128,8 @@ export function SearchBooks() {
       console.log('[SearchBooks] Guardando libro con payload (pre-addBook):', book);
       await addBook(book, status);
       toast.success(`"${book.title}" agregado a tu lista como ${
-        status === 'FAVORITE' ? 'Favorito' :
-        status === 'TO_READ' ? 'Por leer' : 'Leído'
+        status === 'FAVORITE' ? 'Quiero' :
+        status === 'TO_READ' ? 'Por leer (Tengo)' : 'Leído'
       }`);
     } catch {
       toast.error('No se pudo agregar el libro a tu lista.');
@@ -473,7 +473,7 @@ export function SearchBooks() {
                           ? <Loader2 className="h-4 w-4 animate-spin" />
                           : <Plus className="h-4 w-4" />
                     }
-                    menuTriggerLabel={inLibrary ? 'Eliminar libro' : 'Agregar a favoritos'}
+                    menuTriggerLabel={inLibrary ? 'Eliminar libro' : 'Agregar a quiero'}
                     menuTriggerClassName={inLibrary ? 'text-destructive hover:bg-destructive/10' : 'bg-foreground text-primary-foreground hover:bg-foreground/90'}
                     onMenuTriggerClick={() => {
                       if (inLibrary) {

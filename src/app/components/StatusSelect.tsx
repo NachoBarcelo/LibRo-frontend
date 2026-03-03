@@ -18,12 +18,12 @@ interface StatusSelectProps {
 
 const statusConfig = {
   FAVORITE: {
-    label: 'Favorito',
+    label: 'Quiero',
     icon: Heart,
     color: 'text-red-600',
   },
   TO_READ: {
-    label: 'Por leer',
+    label: 'Por leer (Tengo)',
     icon: BookMarked,
     color: 'text-blue-600',
   },
