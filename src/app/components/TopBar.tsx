@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Search, BookMarked, FileText, Home } from 'lucide-react';
-import { Button } from './ui/button';
+import { Search, BookMarked, FileText, Home } from 'lucide-react';
 
 const navigation = [
   { name: 'Inicio', href: '/', icon: Home },
@@ -12,7 +11,6 @@ const navigation = [
 
 export function TopBar() {
   const location = useLocation();
-  const isDashboard = location.pathname === '/';
 
   const isItemActive = (href: string) => {
     if (href === '/') {
@@ -24,37 +22,6 @@ export function TopBar() {
 
   return (
     <>
-      <header className={`sticky top-0 z-40 hidden border-b border-primary/30 bg-primary text-primary-foreground backdrop-blur ${isDashboard ? '' : 'md:block'}`}>
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <Link to="/" className="group flex items-center gap-2">
-            <BookOpen className="h-7 w-7 text-primary-foreground transition-transform group-hover:scale-110" />
-            <span className="text-xl font-bold tracking-tight">LibRo</span>
-          </Link>
-
-          <nav className="hidden items-center gap-1 md:flex">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const isActive = isItemActive(item.href);
-
-              return (
-                <Button
-                  key={item.href}
-                  asChild
-                  variant={isActive ? 'secondary' : 'ghost'}
-                  size="sm"
-                  className={isActive ? '' : 'hover:bg-primary-foreground/10 hover:text-primary-foreground'}
-                >
-                  <Link to={item.href} className="flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    {item.name}
-                  </Link>
-                </Button>
-              );
-            })}
-          </nav>
-        </div>
-      </header>
-
       <nav className="fixed inset-x-0 bottom-0 z-50 md:hidden">
         <div className="w-full border-t border-primary-foreground/20 bg-primary/95 px-3 py-1.5 backdrop-blur">
           <div className="grid h-16 grid-cols-4">

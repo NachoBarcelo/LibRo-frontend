@@ -23,6 +23,7 @@ interface ReviewFormProps {
   onCancel?: () => void;
   submitLabel?: string;
   isLoading?: boolean;
+  variant?: 'default' | 'on-primary';
 }
 
 export function ReviewForm({
@@ -31,7 +32,10 @@ export function ReviewForm({
   onCancel,
   submitLabel = 'Guardar reseña',
   isLoading = false,
+  variant = 'default',
 }: ReviewFormProps) {
+  const isOnPrimary = variant === 'on-primary';
+
   const [formData, setFormData] = useState({
     bookId: initialData?.bookId || '',
     bookTitle: initialData?.bookTitle || '',
@@ -78,7 +82,7 @@ export function ReviewForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="bookTitle">Título del libro</Label>
+        <Label htmlFor="bookTitle" className={isOnPrimary ? 'text-primary-foreground' : ''}>Título del libro</Label>
         <Input
           id="bookTitle"
           value={formData.bookTitle}
@@ -87,6 +91,7 @@ export function ReviewForm({
           }
           placeholder="Ej: El nombre del viento"
           disabled={isLoading}
+          className={isOnPrimary ? 'border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/60' : ''}
         />
         {errors.bookTitle && (
           <p className="text-sm text-destructive">{errors.bookTitle}</p>
@@ -94,13 +99,14 @@ export function ReviewForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="title">Título de la reseña</Label>
+        <Label htmlFor="title" className={isOnPrimary ? 'text-primary-foreground' : ''}>Título de la reseña</Label>
         <Input
           id="title"
           value={formData.title}
           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
           placeholder="Ej: Una obra maestra"
           disabled={isLoading}
+          className={isOnPrimary ? 'border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/60' : ''}
         />
         {errors.title && (
           <p className="text-sm text-destructive">{errors.title}</p>
@@ -108,7 +114,7 @@ export function ReviewForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="rating">Calificación</Label>
+        <Label htmlFor="rating" className={isOnPrimary ? 'text-primary-foreground' : ''}>Calificación</Label>
         <div className="flex items-center gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
@@ -124,13 +130,15 @@ export function ReviewForm({
                 className={`h-8 w-8 ${
                   star <= (hoveredRating || formData.rating)
                     ? 'fill-amber-400 text-amber-400'
+                    : isOnPrimary
+                    ? 'text-primary-foreground/55'
                     : 'text-muted-foreground'
                 }`}
               />
             </button>
           ))}
           {formData.rating > 0 && (
-            <span className="ml-2 text-sm text-muted-foreground">
+            <span className={`ml-2 text-sm ${isOnPrimary ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
               {formData.rating} de 5
             </span>
           )}
@@ -141,7 +149,7 @@ export function ReviewForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="content">Contenido de la reseña</Label>
+        <Label htmlFor="content" className={isOnPrimary ? 'text-primary-foreground' : ''}>Contenido de la reseña</Label>
         <Textarea
           id="content"
           value={formData.content}
@@ -151,6 +159,7 @@ export function ReviewForm({
           placeholder="Comparte tu opinión sobre este libro..."
           rows={8}
           disabled={isLoading}
+          className={isOnPrimary ? 'border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/60' : ''}
         />
         {errors.content && (
           <p className="text-sm text-destructive">{errors.content}</p>
@@ -164,11 +173,12 @@ export function ReviewForm({
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
+            className={isOnPrimary ? 'border-primary-foreground/35 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20' : ''}
           >
             Cancelar
           </Button>
         )}
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} className={isOnPrimary ? 'bg-secondary text-secondary-foreground hover:bg-secondary/90' : ''}>
           {submitLabel}
         </Button>
       </div>

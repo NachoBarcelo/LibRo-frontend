@@ -42,19 +42,20 @@ export function NewReview() {
 
   if (!selectedBook) {
     return (
-      <div className="min-h-screen">
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
         <PageHeader
           title="Nueva Reseña"
           subtitle="Comparte tu opinión sobre un libro"
-          icon={<Plus className="mt-1 h-7 w-7 text-primary" />}
+          icon={<Plus className="mt-1 h-7 w-7 text-primary-foreground" />}
         />
 
-        <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="relative mx-auto max-w-3xl px-6 py-8">
           <EmptyState
             title="No tienes libros en tu lista"
             description="Agrega un libro primero para poder crear reseñas."
             action={
-              <Button asChild>
+              <Button asChild className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
                 <Link to="/search">Ir a buscar libros</Link>
               </Button>
             }
@@ -65,15 +66,16 @@ export function NewReview() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+      <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
       <PageHeader
         title="Nueva Reseña"
         subtitle="Comparte tu opinión sobre un libro"
-        icon={<Plus className="mt-1 h-7 w-7 text-primary" />}
+        icon={<Plus className="mt-1 h-7 w-7 text-primary-foreground" />}
       />
 
-      <div className="mx-auto max-w-3xl px-6 py-8">
-        <div className="rounded-lg border border-border bg-card p-6">
+      <div className="relative mx-auto max-w-3xl px-6 py-8">
+        <div className="rounded-lg border border-primary-foreground/30 bg-primary-foreground/10 p-6">
           <ReviewForm
             initialData={
               bookId && bookTitle
@@ -89,6 +91,7 @@ export function NewReview() {
             onSubmit={handleSubmit}
             onCancel={() => navigate('/reviews')}
             submitLabel="Crear reseña"
+            variant="on-primary"
           />
         </div>
       </div>

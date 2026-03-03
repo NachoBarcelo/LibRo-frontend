@@ -292,15 +292,17 @@ export function SearchBooks() {
   const cardVariant = viewMode === 'list' ? 'list' : 'grid';
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+      <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
+
       <PageHeader
         title="Buscar Libros"
         subtitle="Descubre nuevos libros para agregar a tu colección"
-        icon={<Search className="mt-1 h-7 w-7 text-primary" />}
+        icon={<Search className="mt-1 h-7 w-7 text-primary-foreground " />}
       />
 
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="mb-8">
+      <div className="relative mx-auto max-w-7xl px-6 py-8">
+        
           <SearchBox
             value={query}
             onChange={setQuery}
@@ -309,7 +311,7 @@ export function SearchBooks() {
             showSuggestions
             onSuggestionClick={handleSuggestionClick}
           />
-        </div>
+        
 
         {isLoading && <Loader text="Buscando libros..." />}
 
@@ -322,16 +324,16 @@ export function SearchBooks() {
 
         {!isLoading && !error && hasSearched && results.length === 0 && (
           <EmptyState
-            icon={<Search className="h-10 w-10 text-muted-foreground" />}
+            icon={<Search className="h-10 w-10 text-primary-foreground/70" />}
             title="No se encontraron resultados"
             description={`No encontramos libros que coincidan con "${query}". Intenta con otros términos de búsqueda.`}
           />
         )}
 
         {!isLoading && !error && results.length > 0 && (
-          <div>
+          <div className="mt-6">
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-primary-foreground/80">
                 {results.length} {results.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}
               </p>
               <div className="flex items-center gap-2">
@@ -339,6 +341,7 @@ export function SearchBooks() {
                   type="button"
                   size="sm"
                   variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  className={viewMode === 'list' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
                   onClick={() => setViewMode('list')}
                 >
                   Listado
@@ -348,6 +351,7 @@ export function SearchBooks() {
                     type="button"
                     size="sm"
                     variant={viewMode === 'grid-1' ? 'secondary' : 'ghost'}
+                    className={viewMode === 'grid-1' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
                     onClick={() => setViewMode('grid-1')}
                   >
                     1 col
@@ -357,6 +361,7 @@ export function SearchBooks() {
                   type="button"
                   size="sm"
                   variant={viewMode === 'grid-2' ? 'secondary' : 'ghost'}
+                  className={viewMode === 'grid-2' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
                   onClick={() => setViewMode('grid-2')}
                 >
                   2 col
@@ -366,6 +371,7 @@ export function SearchBooks() {
                     type="button"
                     size="sm"
                     variant={viewMode === 'grid-4' ? 'secondary' : 'ghost'}
+                    className={viewMode === 'grid-4' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
                     onClick={() => setViewMode('grid-4')}
                   >
                     4 col
@@ -388,7 +394,7 @@ export function SearchBooks() {
                   return (
                     <div
                       key={book.id}
-                      className="group relative overflow-hidden rounded-lg border border-border/60 bg-muted transition-all hover:border-primary/60 hover:shadow-md"
+                          className="group relative overflow-hidden rounded-lg border border-primary-foreground/30 bg-primary-foreground/10 transition-all hover:border-primary-foreground/55 hover:shadow-md"
                     >
                       <div className="aspect-[2/3] w-full">
                         {book.cover ? (
@@ -398,15 +404,15 @@ export function SearchBooks() {
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 text-sm text-muted-foreground">
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-foreground/12 to-primary-foreground/5 text-sm text-primary-foreground/75">
                             Sin portada
                           </div>
                         )}
                       </div>
 
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/98 via-background/80 to-transparent p-3 sm:p-4">
-                        <p className="line-clamp-1 text-sm sm:text-base font-medium text-foreground drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">{book.title}</p>
-                        <p className="line-clamp-1 text-xs sm:text-sm text-foreground/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{book.author}</p>
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary/95 via-primary/80 to-transparent p-3 sm:p-4">
+                        <p className="line-clamp-1 text-sm sm:text-base font-medium text-primary-foreground drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">{book.title}</p>
+                        <p className="line-clamp-1 text-xs sm:text-sm text-primary-foreground/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{book.author}</p>
 
                         <div className="mt-2 flex items-end justify-between gap-2">
                           {inLibrary ? (
@@ -420,7 +426,7 @@ export function SearchBooks() {
                                 setSelectedStatuses({ ...selectedStatuses, [book.id]: newStatus })
                               }
                               disabled={isSaving || isLoadingEditions}
-                              triggerClassName="h-8 w-[120px] border-border/40 bg-background/60 px-2 text-xs backdrop-blur-sm"
+                              triggerClassName="h-8 w-[120px] border-primary-foreground/35 bg-primary/50 px-2 text-xs text-primary-foreground backdrop-blur-sm"
                             />
                           )}
 
@@ -436,7 +442,7 @@ export function SearchBooks() {
                               void handleAddBookWithEditionSelection(book, currentStatus);
                             }}
                             disabled={isSaving || isLoadingEditions || isDeletingBook}
-                            className={`h-9 w-9 rounded-full shadow-sm ${inLibrary ? 'bg-destructive/85 text-destructive-foreground hover:bg-destructive' : 'bg-primary/85 text-primary-foreground hover:bg-primary'}`}
+                            className={`h-9 w-9 rounded-full shadow-sm ${inLibrary ? 'bg-destructive/85 text-destructive-foreground hover:bg-destructive' : 'bg-secondary/85 text-secondary-foreground hover:bg-secondary'}`}
                             aria-label={inLibrary ? 'Eliminar de la lista' : 'Agregar a la lista'}
                           >
                             {inLibrary ? (
@@ -456,6 +462,7 @@ export function SearchBooks() {
                 return (
                   <BookCard
                     key={book.id}
+                    className={isListMode ? 'bg-foreground/70 text-primary-foreground border-primary-foreground/25 [&_.text-muted-foreground]:text-primary-foreground/75' : undefined}
                     variant={cardVariant}
                     menuTriggerIcon={
                       inLibrary
@@ -467,7 +474,7 @@ export function SearchBooks() {
                           : <Plus className="h-4 w-4" />
                     }
                     menuTriggerLabel={inLibrary ? 'Eliminar libro' : 'Agregar a favoritos'}
-                    menuTriggerClassName={inLibrary ? 'text-destructive hover:bg-destructive/10' : undefined}
+                    menuTriggerClassName={inLibrary ? 'text-destructive hover:bg-destructive/10' : 'bg-foreground text-primary-foreground hover:bg-foreground/90'}
                     onMenuTriggerClick={() => {
                       if (inLibrary) {
                         setBookToDelete(savedBook?.id ?? null);
@@ -503,7 +510,7 @@ export function SearchBooks() {
                             void handleAddBookWithEditionSelection(book, selectedStatus);
                           }}
                           disabled={isSaving || isLoadingEditions}
-                          className="w-full"
+                          className="w-full bg-foreground text-primary-foreground hover:bg-foreground/90"
                         >
                           {isSaving ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -524,7 +531,7 @@ export function SearchBooks() {
 
         {!hasSearched && !isLoading && (
           <EmptyState
-            icon={<Search className="h-10 w-10 text-muted-foreground" />}
+            icon={<Search className="h-10 w-10 text-primary/70" />}
             title="Comienza tu búsqueda"
             description="Escribe el título de un libro o el nombre de un autor en el buscador para encontrar nuevas lecturas."
           />
@@ -532,10 +539,10 @@ export function SearchBooks() {
       </div>
 
       <Dialog open={editionDialogOpen} onOpenChange={setEditionDialogOpen}>
-        <DialogContent className="max-w-4xl p-4 sm:p-6">
+        <DialogContent className="max-w-4xl border-primary-foreground/30 bg-primary text-primary-foreground p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Selecciona una edición</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-primary-foreground/80">
               Encontramos varias ediciones. Elige una portada para guardar esa edición en tu biblioteca.
             </DialogDescription>
           </DialogHeader>
@@ -549,19 +556,19 @@ export function SearchBooks() {
                   onClick={() => {
                     void handleSelectEdition(edition);
                   }}
-                  className="rounded-md border border-border p-2 text-left transition-colors hover:bg-accent/40"
+                  className="rounded-md border border-primary-foreground/30 bg-primary-foreground/8 p-2 text-left transition-colors hover:bg-primary-foreground/15"
                 >
-                  <div className="aspect-[2/3] overflow-hidden rounded bg-muted">
+                  <div className="aspect-[2/3] overflow-hidden rounded bg-primary-foreground/12">
                     {edition.image ? (
                       <img src={edition.image} alt={`Edición ${edition.editionId}`} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+                      <div className="flex h-full w-full items-center justify-center text-xs text-primary-foreground/70">
                         Sin portada
                       </div>
                     )}
                   </div>
-                  <p className="mt-2 line-clamp-1 text-xs text-muted-foreground">{edition.language}</p>
-                  <p className="line-clamp-1 text-xs text-muted-foreground">{edition.year ?? 'Año desconocido'}</p>
+                  <p className="mt-2 line-clamp-1 text-xs text-primary-foreground/80">{edition.language}</p>
+                  <p className="line-clamp-1 text-xs text-primary-foreground/75">{edition.year ?? 'Año desconocido'}</p>
                 </button>
               ))}
             </div>
@@ -570,16 +577,20 @@ export function SearchBooks() {
       </Dialog>
 
       <AlertDialog open={!!bookToDelete} onOpenChange={() => setBookToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-primary-foreground/30 bg-primary text-primary-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar libro?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-primary-foreground/80">
               Esta acción eliminará el libro de tu lista personal.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeletingBook}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { void handleDeleteBook(); }} disabled={isDeletingBook}>
+            <AlertDialogAction
+              onClick={() => { void handleDeleteBook(); }}
+              disabled={isDeletingBook}
+              className="bg-foreground text-primary-foreground hover:bg-foreground/90"
+            >
               {isDeletingBook ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

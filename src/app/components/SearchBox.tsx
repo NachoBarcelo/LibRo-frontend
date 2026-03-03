@@ -109,13 +109,13 @@ export function SearchBox({
   return (
     <div ref={wrapperRef} className="relative w-full">
       <form onSubmit={handleSubmit} className="relative">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-primary-foreground/75" />
         <Input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="pl-10 pr-20 bg-primary/10 border-primary/20 focus-visible:ring-primary/30"
+          className="h-11 border-primary-foreground/30 bg-primary/35 pl-10 pr-20 text-primary-foreground placeholder:text-primary-foreground/60 focus-visible:ring-primary-foreground/40"
           onFocus={() => {
             if (suggestions.length > 0) {
               setShowDropdown(true);
@@ -129,7 +129,7 @@ export function SearchBox({
               variant="ghost"
               size="sm"
               onClick={handleClear}
-              className="h-7 w-7 p-0"
+              className="h-7 w-7 p-0 text-primary-foreground/85 hover:bg-primary-foreground/15 hover:text-primary-foreground"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -154,7 +154,7 @@ export function SearchBox({
       </form>
 
       {showDropdown && showSuggestions && (
-        <div className="absolute top-full z-50 mt-2 w-full rounded-lg border border-border bg-popover shadow-lg">
+        <div className="absolute top-full z-50 mt-2 w-full rounded-xl border border-primary-foreground/30 bg-primary shadow-lg shadow-primary/40">
           {isLoadingSuggestions ? (
             <div className="p-4">
               <Loader text="Buscando..." size="sm" />
@@ -166,9 +166,9 @@ export function SearchBox({
                   key={book.id}
                   type="button"
                   onClick={() => handleSuggestionClick(book)}
-                  className="flex w-full items-start gap-3 border-b border-border p-3 text-left transition-colors hover:bg-accent/50 last:border-0"
+                  className="flex w-full items-start gap-3 border-b border-primary-foreground/20 p-3 text-left transition-colors hover:bg-primary-foreground/14 last:border-0"
                 >
-                  <div className="h-16 w-12 flex-shrink-0 overflow-hidden rounded bg-muted">
+                  <div className="h-16 w-12 flex-shrink-0 overflow-hidden rounded bg-primary-foreground/12">
                     {book.cover ? (
                       <img
                         src={book.cover}
@@ -176,23 +176,23 @@ export function SearchBox({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-primary/10">
-                        <Search className="h-6 w-6 text-muted-foreground" />
+                      <div className="flex h-full w-full items-center justify-center bg-primary-foreground/10">
+                        <Search className="h-6 w-6 text-primary-foreground/70" />
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium line-clamp-1">{book.title}</p>
-                    <p className="text-sm text-muted-foreground">{book.author}</p>
+                    <p className="line-clamp-1 font-medium text-primary-foreground">{book.title}</p>
+                    <p className="text-sm text-primary-foreground/80">{book.author}</p>
                     {book.year && (
-                      <p className="text-xs text-muted-foreground">{book.year}</p>
+                      <p className="text-xs text-primary-foreground/70">{book.year}</p>
                     )}
                   </div>
                 </button>
               ))}
             </div>
           ) : (
-            <div className="p-4 text-center text-sm text-muted-foreground">
+            <div className="p-4 text-center text-sm text-primary-foreground/75">
               No se encontraron sugerencias
             </div>
           )}

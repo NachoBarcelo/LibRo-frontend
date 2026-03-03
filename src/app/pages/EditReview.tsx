@@ -35,17 +35,18 @@ export function EditReview() {
 
   if (!review) {
     return (
-      <div className="min-h-screen">
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
         <PageHeader
           title="Reseña no encontrada"
-          icon={<Pencil className="mt-1 h-7 w-7 text-primary" />}
+          icon={<Pencil className="mt-1 h-7 w-7 text-primary-foreground" />}
         />
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="relative mx-auto max-w-7xl px-6 py-8">
           <EmptyState
             title="Reseña no encontrada"
             description="La reseña que intentas editar no existe o ha sido eliminada."
             action={
-              <Button asChild>
+              <Button asChild className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
                 <Link to="/reviews">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Volver a reseñas
@@ -59,22 +60,23 @@ export function EditReview() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+      <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
       <PageHeader
         title="Editar Reseña"
         subtitle={review.bookTitle}
-        icon={<Pencil className="mt-1 h-7 w-7 text-primary" />}
+        icon={<Pencil className="mt-1 h-7 w-7 text-primary-foreground" />}
       />
 
-      <div className="mx-auto max-w-3xl px-6 py-8">
-        <Button asChild variant="ghost" size="sm" className="mb-6">
+      <div className="relative mx-auto max-w-3xl px-6 py-8">
+        <Button asChild variant="ghost" size="sm" className="mb-6 bg-secondary/70 text-secondary-foreground hover:bg-secondary/90">
           <Link to={`/reviews/${review.id}`}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver
           </Link>
         </Button>
 
-        <div className="rounded-lg border border-border bg-card p-6">
+        <div className="rounded-lg border border-primary-foreground/30 bg-primary-foreground/10 p-6">
           <ReviewForm
             initialData={{
               bookId: review.bookId,
@@ -86,6 +88,7 @@ export function EditReview() {
             onSubmit={handleSubmit}
             onCancel={() => navigate(`/reviews/${review.id}`)}
             submitLabel="Guardar cambios"
+            variant="on-primary"
           />
         </div>
       </div>

@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 
 interface BookCardProps {
   book: Book;
+  className?: string;
   actions?: ReactNode;
   badge?: ReactNode;
   coverOverlay?: ReactNode;
@@ -24,6 +25,7 @@ interface BookCardProps {
 
 export function BookCard({
   book,
+  className,
   actions,
   badge,
   coverOverlay,
@@ -78,7 +80,7 @@ export function BookCard({
 
   return (
     <Card
-      className={`overflow-hidden transition-all hover:shadow-md ${onClick ? 'cursor-pointer' : ''}`}
+      className={`overflow-hidden transition-all hover:shadow-md ${onClick ? 'cursor-pointer' : ''} ${className ?? ''}`}
       onClick={onClick}
     >
       <div className={isList ? 'flex h-28 sm:h-32' : ''}>

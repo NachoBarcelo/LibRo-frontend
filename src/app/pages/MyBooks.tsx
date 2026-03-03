@@ -185,22 +185,15 @@ export function MyBooks() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+      
       <PageHeader
         title="Mis Libros"
         subtitle="Gestiona tu colección personal y estados de lectura"
-        icon={<BookMarked className="mt-1 h-7 w-7 text-primary" />}
-        actions={
-          <Button asChild size="sm">
-            <Link to="/search">
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar libros
-            </Link>
-          </Button>
-        }
+        icon={<BookMarked className="mt-1 h-7 w-7 text-primary-foreground" />}
       />
 
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="relative mx-auto max-w-7xl px-6 py-8">
         {isLoading && <Loader text="Cargando tus libros..." />}
 
         {!isLoading && error && (
@@ -216,17 +209,17 @@ export function MyBooks() {
           <>
         <div className="mb-8 flex flex-wrap items-center justify-between gap-3">
           <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterStatus)}>
-            <TabsList className="grid w-full max-w-2xl grid-cols-4">
-              <TabsTrigger value="ALL">
+            <TabsList className="grid w-full max-w-2xl grid-cols-4 border border-primary-foreground/30 bg-primary-foreground/10">
+              <TabsTrigger className="text-primary-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground" value="ALL">
                 Todos ({statusCounts.ALL})
               </TabsTrigger>
-              <TabsTrigger value="FAVORITE">
+              <TabsTrigger className="text-primary-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground" value="FAVORITE">
                 Favoritos ({statusCounts.FAVORITE})
               </TabsTrigger>
-              <TabsTrigger value="TO_READ">
+              <TabsTrigger className="text-primary-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground" value="TO_READ">
                 Por leer ({statusCounts.TO_READ})
               </TabsTrigger>
-              <TabsTrigger value="READ">
+              <TabsTrigger className="text-primary-foreground/80 data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground" value="READ">
                 Leídos ({statusCounts.READ})
               </TabsTrigger>
             </TabsList>
@@ -236,6 +229,7 @@ export function MyBooks() {
               type="button"
               size="sm"
               variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              className={viewMode === 'list' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
               onClick={() => setViewMode('list')}
             >
               Listado
@@ -245,6 +239,7 @@ export function MyBooks() {
                 type="button"
                 size="sm"
                 variant={viewMode === 'grid-1' ? 'secondary' : 'ghost'}
+                className={viewMode === 'grid-1' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
                 onClick={() => setViewMode('grid-1')}
               >
                 1 col
@@ -254,6 +249,7 @@ export function MyBooks() {
               type="button"
               size="sm"
               variant={viewMode === 'grid-2' ? 'secondary' : 'ghost'}
+              className={viewMode === 'grid-2' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
               onClick={() => setViewMode('grid-2')}
             >
               2 col
@@ -263,6 +259,7 @@ export function MyBooks() {
                 type="button"
                 size="sm"
                 variant={viewMode === 'grid-4' ? 'secondary' : 'ghost'}
+                className={viewMode === 'grid-4' ? '' : 'bg-secondary/75 text-secondary-foreground hover:bg-secondary/90'}
                 onClick={() => setViewMode('grid-4')}
               >
                 4 col
@@ -273,13 +270,13 @@ export function MyBooks() {
 
         <div className="mb-6">
           <label className="relative block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary-foreground/70" />
             <input
               type="text"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar por título o autor..."
-              className="h-10 w-full rounded-md border border-primary/20 bg-primary/10 pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="h-10 w-full rounded-md border border-primary-foreground/30 bg-primary-foreground/10 pl-9 pr-3 text-sm text-primary-foreground outline-none transition-colors placeholder:text-primary-foreground/60 focus-visible:ring-2 focus-visible:ring-primary-foreground/40"
             />
           </label>
         </div>
@@ -287,32 +284,33 @@ export function MyBooks() {
         <Collapsible
           open={isAuthorFilterOpen}
           onOpenChange={setIsAuthorFilterOpen}
-          className="mb-6 rounded-lg border border-border/60 bg-background/60"
+          className="mb-6 rounded-lg border border-primary-foreground/30 bg-primary-foreground/10"
         >
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-accent/20"
+              className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-primary-foreground/15"
             >
               <div>
-                <p className="text-sm">Filtrar por autor</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-primary-foreground">Filtrar por autor</p>
+                <p className="text-xs text-primary-foreground/70">
                   {selectedAuthors.length > 0
                     ? `${selectedAuthors.length} seleccionado(s)`
                     : `${authorOptions.length} autores disponibles`}
                 </p>
               </div>
-              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isAuthorFilterOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 text-primary-foreground/75 transition-transform ${isAuthorFilterOpen ? 'rotate-180' : ''}`} />
             </button>
           </CollapsibleTrigger>
 
           <CollapsibleContent>
-            <div className="border-t border-border/60 p-4">
+            <div className="border-t border-primary-foreground/20 p-4">
               <div className="mb-3 flex items-center justify-end">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
+                  className="bg-secondary/75 text-secondary-foreground hover:bg-secondary/90"
                   onClick={() => setSelectedAuthors([])}
                   disabled={selectedAuthors.length === 0}
                 >
@@ -329,11 +327,11 @@ export function MyBooks() {
                     return (
                       <label
                         key={authorName}
-                        className="flex cursor-pointer items-center justify-between rounded-md border border-border/60 px-3 py-2 text-sm hover:bg-accent/30"
+                        className="flex cursor-pointer items-center justify-between rounded-md border border-primary-foreground/25 bg-primary-foreground/8 px-3 py-2 text-sm text-primary-foreground hover:bg-primary-foreground/15"
                       >
                         <span className="truncate pr-3">{authorName}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{authorCounts[normalizedAuthor] ?? 0}</span>
+                          <span className="text-xs text-primary-foreground/70">{authorCounts[normalizedAuthor] ?? 0}</span>
                           <Checkbox
                             checked={isChecked}
                             onCheckedChange={(value) => toggleAuthorFilter(authorName, Boolean(value))}
@@ -345,7 +343,7 @@ export function MyBooks() {
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No hay autores disponibles para este filtro.</p>
+                <p className="text-sm text-primary-foreground/70">No hay autores disponibles para este filtro.</p>
               )}
             </div>
           </CollapsibleContent>
@@ -353,7 +351,7 @@ export function MyBooks() {
 
         {filteredBooks.length === 0 ? (
           <EmptyState
-            icon={<BookMarked className="h-10 w-10 text-muted-foreground" />}
+            icon={<BookMarked className="h-10 w-10 text-primary-foreground/70" />}
             title={
               normalizedSearchTerm
                 ? 'No encontramos coincidencias'
@@ -376,15 +374,15 @@ export function MyBooks() {
             }
             action={
               normalizedSearchTerm ? (
-                <Button type="button" variant="outline" onClick={() => setSearchTerm('')}>
+                <Button type="button" variant="outline" className="border-primary-foreground/35 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => setSearchTerm('')}>
                   Limpiar búsqueda
                 </Button>
               ) : selectedAuthors.length > 0 ? (
-                <Button type="button" variant="outline" onClick={() => setSelectedAuthors([])}>
+                <Button type="button" variant="outline" className="border-primary-foreground/35 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20" onClick={() => setSelectedAuthors([])}>
                   Limpiar autores
                 </Button>
               ) : (
-                <Button asChild>
+                <Button asChild className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
                   <Link to="/search">
                     <Plus className="mr-2 h-4 w-4" />
                     Buscar libros
@@ -395,10 +393,19 @@ export function MyBooks() {
           />
         ) : (
           <div>
-            <p className="mb-6 text-sm text-muted-foreground">
-              {filteredBooks.length}{' '}
-              {filteredBooks.length === 1 ? 'libro' : 'libros'}
-            </p>
+            <div className="sticky bottom-20 z-20 mb-6 flex items-center justify-between gap-3 rounded-xl border border-primary-foreground/20 bg-primary-foreground/10 px-3 py-2 backdrop-blur md:static md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-0">
+              <p className="text-sm text-primary-foreground/80">
+                {filteredBooks.length}{' '}
+                {filteredBooks.length === 1 ? 'libro' : 'libros'}
+              </p>
+
+              <Button asChild size="icon" className="h-9 w-9 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/90" aria-label="Agregar libros">
+                <Link to="/search">
+                  <Plus className="h-4 w-4" />
+                  <span className="sr-only">Agregar libros</span>
+                </Link>
+              </Button>
+            </div>
             <div className={listClassName}>
               {filteredBooks.map((book) => {
                 const isListMode = cardVariant === 'list';
@@ -409,7 +416,7 @@ export function MyBooks() {
                   return (
                     <div
                       key={book.id}
-                      className="group relative overflow-hidden rounded-lg border border-border/60 bg-muted transition-all hover:border-primary/60 hover:shadow-md"
+                      className="group relative overflow-hidden rounded-lg border border-primary-foreground/30 bg-primary-foreground/10 transition-all hover:border-primary-foreground/55 hover:shadow-md"
                     >
                       <Link
                         to={`/books/${book.id}`}
@@ -423,15 +430,15 @@ export function MyBooks() {
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10 text-sm text-muted-foreground">
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-foreground/12 to-primary-foreground/5 text-sm text-primary-foreground/75">
                             Sin portada
                           </div>
                         )}
                       </Link>
 
-                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/98 via-background/80 to-transparent p-3 sm:p-4">
-                        <p className="line-clamp-1 text-sm sm:text-base font-medium text-foreground drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">{book.title}</p>
-                        <p className="line-clamp-1 text-xs sm:text-sm text-foreground/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{book.author}</p>
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-primary/95 via-primary/80 to-transparent p-3 sm:p-4">
+                        <p className="line-clamp-1 text-sm sm:text-base font-medium text-primary-foreground drop-shadow-[0_1px_1px_rgba(0,0,0,0.25)]">{book.title}</p>
+                        <p className="line-clamp-1 text-xs sm:text-sm text-primary-foreground/90 drop-shadow-[0_1px_1px_rgba(0,0,0,0.2)]">{book.author}</p>
                       </div>
 
                       <Button
@@ -451,11 +458,12 @@ export function MyBooks() {
                 return (
                   <BookCard
                     key={book.id}
+                    className={isListMode ? 'bg-foreground/70 text-primary-foreground border-primary-foreground/25 [&_.text-muted-foreground]:text-primary-foreground/75' : undefined}
                     variant={cardVariant}
                     coverLinkTo={`/books/${book.id}`}
                     menuTriggerIcon={isDeletingThisBook ? <Loader2 className="h-4 w-4 animate-spin text-destructive" /> : <Trash2 className="h-4 w-4 text-destructive" />}
                     menuTriggerLabel="Eliminar libro"
-                    menuTriggerClassName="text-destructive hover:bg-destructive/10"
+                    menuTriggerClassName="bg-foreground text-primary-foreground hover:bg-foreground/90"
                     onMenuTriggerClick={() => setBookToDelete(book.id)}
                     menuTriggerDisabled={isDeletingBook}
                     book={book}
@@ -474,7 +482,7 @@ export function MyBooks() {
                             variant="destructive"
                             onClick={() => setBookToDelete(book.id)}
                             disabled={isDeletingBook}
-                            className="w-full"
+                            className="w-full bg-foreground text-primary-foreground hover:bg-foreground/90"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Eliminar
@@ -494,17 +502,17 @@ export function MyBooks() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!bookToDelete} onOpenChange={() => setBookToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-primary-foreground/30 bg-primary text-primary-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar libro?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-primary-foreground/80">
               Esta acción eliminará el libro de tu lista personal. Las reseñas asociadas
               a este libro no se eliminarán.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeletingBook}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteBook} disabled={isDeletingBook}>
+            <AlertDialogAction onClick={handleDeleteBook} disabled={isDeletingBook} className="bg-foreground text-primary-foreground hover:bg-foreground/90">
               {isDeletingBook ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

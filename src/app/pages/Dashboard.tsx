@@ -367,11 +367,11 @@ export function Dashboard() {
                       className="basis-1/2 lg:basis-1/3"
                     >
                       <article className="overflow-hidden rounded-2xl border border-primary-foreground/30 bg-primary-foreground/10">
-                        <div className="flex aspect-[2/3] w-full items-center justify-center bg-primary-foreground/8 p-2">
+                        <div className="aspect-[2/3] w-full overflow-hidden">
                           <img
                             src={book.imagen}
                             alt={book.titulo}
-                            className="h-full w-full object-contain"
+                            className="h-full w-full object-cover"
                             loading="lazy"
                           />
                         </div>

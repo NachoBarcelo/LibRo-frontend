@@ -42,27 +42,30 @@ export function Reviews() {
   );
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+      <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
       <PageHeader
         title="Mis Reseñas"
         subtitle="Todas tus reseñas y opiniones sobre libros"
-        icon={<FileText className="mt-1 h-7 w-7 text-primary" />}
-        actions={
-          <Button asChild size="sm">
+        icon={<FileText className="mt-1 h-7 w-7 text-primary-foreground" />}
+      />
+
+      <div className="relative mx-auto max-w-7xl px-6 py-8">
+        <div className="mb-6 flex justify-end">
+          <Button asChild size="sm" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
             <Link to="/reviews/new">
               <Plus className="mr-2 h-4 w-4" />
               Nueva reseña
             </Link>
           </Button>
-        }
-      />
+        </div>
 
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        {isLoading && <Loader text="Cargando reseñas..." />}
+        {isLoading && <Loader text="Cargando reseñas..." variant="on-primary" />}
 
         {!isLoading && error && (
           <ErrorMessage
             message={error}
+            variant="on-primary"
             onRetry={() => {
               void reloadAll();
             }}
@@ -71,11 +74,11 @@ export function Reviews() {
 
         {!isLoading && !error && reviews.length === 0 ? (
           <EmptyState
-            icon={<FileText className="h-10 w-10 text-muted-foreground" />}
+            icon={<FileText className="h-10 w-10 text-primary-foreground/70" />}
             title="No tienes reseñas"
             description="Empieza a escribir reseñas sobre los libros que has leído para compartir tus opiniones."
             action={
-              <Button asChild>
+              <Button asChild className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
                 <Link to="/reviews/new">
                   <Plus className="mr-2 h-4 w-4" />
                   Crear reseña
@@ -87,17 +90,17 @@ export function Reviews() {
 
         {!isLoading && !error && reviews.length > 0 ? (
           <div>
-            <p className="mb-6 text-sm text-muted-foreground">
+            <p className="mb-6 text-sm text-primary-foreground/80">
               {reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'}
             </p>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {sortedReviews.map((review) => (
-                <Card key={review.id} className="flex flex-col">
+                <Card key={review.id} className="flex flex-col border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
                   <CardHeader>
                     <CardTitle className="text-base line-clamp-2">
                       {review.title}
                     </CardTitle>
-                    <CardDescription className="line-clamp-1">
+                    <CardDescription className="line-clamp-1 text-primary-foreground/80">
                       {review.bookTitle}
                     </CardDescription>
                   </CardHeader>
@@ -109,18 +112,18 @@ export function Reviews() {
                           className={`h-4 w-4 ${
                             i < review.rating
                               ? 'fill-amber-400 text-amber-400'
-                              : 'text-muted'
+                              : 'text-primary-foreground/40'
                           }`}
                         />
                       ))}
-                      <span className="ml-1 text-sm text-muted-foreground">
+                      <span className="ml-1 text-sm text-primary-foreground/80">
                         {review.rating}/5
                       </span>
                     </div>
-                    <p className="line-clamp-3 text-sm text-muted-foreground">
+                    <p className="line-clamp-3 text-sm text-primary-foreground/80">
                       {review.content}
                     </p>
-                    <p className="mt-3 text-xs text-muted-foreground">
+                    <p className="mt-3 text-xs text-primary-foreground/70">
                       {new Date(review.createdAt).toLocaleDateString('es-ES', {
                         year: 'numeric',
                         month: 'long',
@@ -128,15 +131,15 @@ export function Reviews() {
                       })}
                     </p>
                   </CardContent>
-                  <CardFooter className="border-t border-border pt-4">
+                  <CardFooter className="border-t border-primary-foreground/20 pt-4">
                     <div className="flex w-full gap-2">
-                      <Button asChild size="sm" variant="outline" className="flex-1">
+                      <Button asChild size="sm" variant="outline" className="flex-1 border-primary-foreground/35 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">
                         <Link to={`/reviews/${review.id}`}>
                           <Eye className="mr-2 h-4 w-4" />
                           Ver
                         </Link>
                       </Button>
-                      <Button asChild size="sm" variant="outline" className="flex-1">
+                      <Button asChild size="sm" variant="outline" className="flex-1 border-primary-foreground/35 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">
                         <Link to={`/reviews/${review.id}/edit`}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Editar
@@ -144,7 +147,7 @@ export function Reviews() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="destructive"
+                        className="bg-foreground text-primary-foreground hover:bg-foreground/90"
                         onClick={() => setReviewToDelete(review.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -160,16 +163,16 @@ export function Reviews() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!reviewToDelete} onOpenChange={() => setReviewToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-primary-foreground/30 bg-primary text-primary-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar reseña?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-primary-foreground/80">
               Esta acción no se puede deshacer. La reseña será eliminada permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteReview}>
+            <AlertDialogAction onClick={handleDeleteReview} className="bg-foreground text-primary-foreground hover:bg-foreground/90">
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

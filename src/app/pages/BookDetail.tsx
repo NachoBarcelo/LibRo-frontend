@@ -12,6 +12,9 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
+import { StatusSelect } from '../components/StatusSelect';
+import { useLibrary } from '../context/LibraryContext';
+import { toast } from 'sonner';
 
 function extractTextFromUnknown(value: unknown): string | null {
   if (!value) {
@@ -65,9 +68,9 @@ const statusIcon: Record<BookStatus, React.ComponentType<{ className?: string }>
 };
 
 const statusClassName: Record<BookStatus, string> = {
-  FAVORITE: 'bg-primary/15 text-primary border-primary/20',
-  TO_READ: 'bg-secondary/15 text-secondary border-secondary/20',
-  READ: 'bg-accent/20 text-accent-foreground border-accent/30'
+  FAVORITE: 'bg-white text-primary border-white/80',
+  TO_READ: 'bg-white text-primary border-white/80',
+  READ: 'bg-white text-primary border-white/80'
 };
 
 function formatDate(value?: string) {
@@ -102,6 +105,8 @@ export function BookDetail() {
   const [searchDetail, setSearchDetail] = useState<BookSearchDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const { updateBookStatus } = useLibrary();
 
   useEffect(() => {
     if (!id) {
@@ -197,12 +202,45 @@ export function BookDetail() {
     return extractGenresFromOpenLibrary(bookDetail.openLibrary);
   }, [bookDetail, searchDetail]);
 
+  const handleStatusChange = async (newStatus: BookStatus) => {
+    if (!bookDetail) {
+      return;
+    }
+
+    setIsUpdatingStatus(true);
+    try {
+      await updateBookStatus(bookDetail.id, newStatus);
+      setBookDetail((current) => {
+        if (!current) {
+          return current;
+        }
+
+        if (current.userBooks.length === 0) {
+          return current;
+        }
+
+        return {
+          ...current,
+          userBooks: current.userBooks.map((item, index) =>
+            index === 0 ? { ...item, status: newStatus } : item
+          )
+        };
+      });
+      toast.success('Estado actualizado');
+    } catch {
+      toast.error('No se pudo actualizar el estado.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen">
-        <PageHeader title="Detalle del libro" subtitle="Cargando información..." icon={<BookOpen className="mt-1 h-7 w-7 text-primary" />} />
-        <div className="mx-auto max-w-7xl px-6 py-8">
-          <Loader text="Cargando detalle del libro..." />
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
+        <PageHeader title="Detalle del libro" subtitle="Cargando información..." icon={<BookOpen className="mt-1 h-7 w-7 text-primary-foreground" />} />
+        <div className="relative mx-auto max-w-7xl px-6 py-8">
+          <Loader text="Cargando detalle del libro..." variant="on-primary" />
         </div>
       </div>
     );
@@ -210,10 +248,11 @@ export function BookDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen">
-        <PageHeader title="Detalle del libro" icon={<BookOpen className="mt-1 h-7 w-7 text-primary" />} />
-        <div className="mx-auto max-w-7xl px-6 py-8">
-          <ErrorMessage message={error} />
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
+        <PageHeader title="Detalle del libro" icon={<BookOpen className="mt-1 h-7 w-7 text-primary-foreground" />} />
+        <div className="relative mx-auto max-w-7xl px-6 py-8">
+          <ErrorMessage message={error} variant="on-primary" />
         </div>
       </div>
     );
@@ -221,14 +260,15 @@ export function BookDetail() {
 
   if (!bookDetail) {
     return (
-      <div className="min-h-screen">
-        <PageHeader title="Libro no encontrado" icon={<BookOpen className="mt-1 h-7 w-7 text-primary" />} />
-        <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
+        <PageHeader title="Libro no encontrado" icon={<BookOpen className="mt-1 h-7 w-7 text-primary-foreground" />} />
+        <div className="relative mx-auto max-w-7xl px-6 py-8">
           <EmptyState
             title="Libro no encontrado"
             description="No encontramos un libro local con ese identificador."
             action={
-              <Button asChild>
+              <Button asChild className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
                 <Link to="/my-books">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Volver a Mis Libros
@@ -242,13 +282,14 @@ export function BookDetail() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+      <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
       <PageHeader
         title={bookDetail.title}
         subtitle={bookDetail.author ?? 'Autor desconocido'}
-        icon={<LibraryBig className="mt-1 h-7 w-7 text-primary" />}
+        icon={<LibraryBig className="mt-1 h-7 w-7 text-primary-foreground" />}
         actions={
-          <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+          <Button asChild size="sm" className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 sm:w-auto">
             <Link to="/my-books">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Mis Libros
@@ -257,16 +298,16 @@ export function BookDetail() {
         }
       />
 
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <div className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         <div className="grid w-full min-w-0 gap-6 lg:grid-cols-12">
-          <Card className="w-full min-w-0 overflow-hidden lg:col-span-4 lg:mx-0">
+          <Card className="w-full min-w-0 overflow-hidden border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground lg:col-span-4 lg:mx-0">
             <div className="w-full">
-            <div className="aspect-[2/3] bg-muted">
+            <div className="aspect-[2/3] bg-primary-foreground/10">
               {bookDetail.coverImage ? (
                 <img src={bookDetail.coverImage} alt={bookDetail.title} className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
-                  <BookOpen className="h-16 w-16 text-muted-foreground/40" />
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-foreground/12 to-primary-foreground/5">
+                  <BookOpen className="h-16 w-16 text-primary-foreground/40" />
                 </div>
               )}
             </div>
@@ -279,10 +320,10 @@ export function BookDetail() {
                     {statusLabels[primaryUserStatus]}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="border-border text-muted-foreground">Sin estado personal</Badge>
+                  <Badge variant="outline" className="border-primary-foreground/30 text-primary-foreground/75">Sin estado personal</Badge>
                 )}
                 {bookDetail.publishedYear && (
-                  <Badge variant="secondary" className="gap-1">
+                  <Badge variant="secondary" className="gap-1 bg-secondary text-secondary-foreground">
                     <Calendar className="h-3.5 w-3.5" />
                     {bookDetail.publishedYear}
                   </Badge>
@@ -292,18 +333,18 @@ export function BookDetail() {
           </Card>
 
           <div className="min-w-0 space-y-6 lg:col-span-8">
-            <Card>
+            <Card className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
               <CardHeader>
                 <CardTitle className="text-xl">Sinopsis</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                <p className="whitespace-pre-wrap text-sm text-primary-foreground/80">
                   {synopsisText ?? 'No hay sinopsis disponible para este libro.'}
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
               <CardHeader>
                 <CardTitle className="text-xl">Géneros</CardTitle>
               </CardHeader>
@@ -311,47 +352,51 @@ export function BookDetail() {
                 {genres.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {genres.map((genre) => (
-                      <Badge key={genre} variant="outline" className="bg-muted/60">
+                      <Badge key={genre} variant="outline" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
                         {genre}
                       </Badge>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No hay géneros disponibles.</p>
+                  <p className="text-sm text-primary-foreground/75">No hay géneros disponibles.</p>
                 )}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
               <CardHeader>
                 <CardTitle className="text-xl">Estado en tu lista personal</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 {bookDetail.userBooks.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {bookDetail.userBooks.map((item) => {
-                      const Icon = statusIcon[item.status];
-                      return (
-                        <Badge key={item.id} variant="outline" className={statusClassName[item.status]}>
-                          <Icon className="h-3.5 w-3.5" />
-                          {statusLabels[item.status]}
-                        </Badge>
-                      );
-                    })}
-                  </div>
+                  <>
+                    {primaryUserStatus && (
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-primary-foreground/80">Editar estado:</span>
+                        <StatusSelect
+                          value={primaryUserStatus}
+                          onChange={(newStatus) => {
+                            void handleStatusChange(newStatus);
+                          }}
+                          disabled={isUpdatingStatus}
+                          triggerClassName="h-9 border-primary-foreground/35 bg-primary-foreground/10 text-primary-foreground"
+                        />
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Este libro aún no está agregado en tu lista personal.</p>
+                  <p className="text-sm text-primary-foreground/75">Este libro aún no está agregado en tu lista personal.</p>
                 )}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
               <CardHeader>
                 <CardTitle className="text-xl">Reseñas del libro ({bookDetail.reviews.length})</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {bookDetail.reviews.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Todavía no hay reseñas para este libro.</p>
+                  <p className="text-sm text-primary-foreground/75">Todavía no hay reseñas para este libro.</p>
                 ) : (
                   bookDetail.reviews.map((review, index) => (
                     <div key={review.id}>
@@ -361,11 +406,11 @@ export function BookDetail() {
                           <h3 className="text-base font-medium">{review.title}</h3>
                           <div className="flex items-center gap-2">
                             <div className="flex items-center gap-0.5">{ratingStars(review.rating)}</div>
-                            <span className="text-xs text-muted-foreground">{review.rating}/5</span>
+                            <span className="text-xs text-primary-foreground/80">{review.rating}/5</span>
                           </div>
                         </div>
-                        <p className="whitespace-pre-wrap text-sm text-muted-foreground">{review.content}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="whitespace-pre-wrap text-sm text-primary-foreground/80">{review.content}</p>
+                        <p className="text-xs text-primary-foreground/75">
                           Creada: {formatDate(review.createdAt)}
                           {review.updatedAt && review.updatedAt !== review.createdAt ? ` · Actualizada: ${formatDate(review.updatedAt)}` : ''}
                         </p>

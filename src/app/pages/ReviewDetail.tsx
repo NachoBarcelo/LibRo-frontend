@@ -42,10 +42,11 @@ export function ReviewDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen">
-        <PageHeader title="Detalle de reseña" icon={<Eye className="mt-1 h-7 w-7 text-primary" />} />
-        <div className="mx-auto max-w-7xl px-6 py-8">
-          <Loader text="Cargando reseña..." />
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
+        <PageHeader title="Detalle de reseña" icon={<Eye className="mt-1 h-7 w-7 text-primary-foreground" />} />
+        <div className="relative mx-auto max-w-7xl px-6 py-8">
+          <Loader text="Cargando reseña..." variant="on-primary" />
         </div>
       </div>
     );
@@ -53,11 +54,13 @@ export function ReviewDetail() {
 
   if (error) {
     return (
-      <div className="min-h-screen">
-        <PageHeader title="Detalle de reseña" icon={<Eye className="mt-1 h-7 w-7 text-primary" />} />
-        <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
+        <PageHeader title="Detalle de reseña" icon={<Eye className="mt-1 h-7 w-7 text-primary-foreground" />} />
+        <div className="relative mx-auto max-w-7xl px-6 py-8">
           <ErrorMessage
             message={error}
+            variant="on-primary"
             onRetry={() => {
               void reloadAll();
             }}
@@ -69,17 +72,18 @@ export function ReviewDetail() {
 
   if (!review) {
     return (
-      <div className="min-h-screen">
+      <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+        <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
         <PageHeader
           title="Reseña no encontrada"
-          icon={<Eye className="mt-1 h-7 w-7 text-primary" />}
+          icon={<Eye className="mt-1 h-7 w-7 text-primary-foreground" />}
         />
-        <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="relative mx-auto max-w-7xl px-6 py-8">
           <EmptyState
             title="Reseña no encontrada"
             description="La reseña que buscas no existe o ha sido eliminada."
             action={
-              <Button asChild>
+              <Button asChild className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
                 <Link to="/reviews">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Volver a reseñas
@@ -93,22 +97,23 @@ export function ReviewDetail() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen h-full overflow-hidden bg-primary pb-10 text-primary-foreground md:pb-8">
+      <div className="pointer-events-none absolute inset-0 opacity-35 [background:radial-gradient(circle_at_top_left,rgba(255,247,249,0.2),transparent_45%),radial-gradient(circle_at_bottom_right,rgba(255,247,249,0.15),transparent_50%)]" />
       <PageHeader
         title={review.title}
         subtitle={review.bookTitle}
-        icon={<Eye className="mt-1 h-7 w-7 text-primary" />}
+        icon={<Eye className="mt-1 h-7 w-7 text-primary-foreground" />}
         actions={
           <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="border-primary-foreground/35 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20">
               <Link to={`/reviews/${review.id}/edit`}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Editar
               </Link>
             </Button>
             <Button
-              variant="destructive"
               size="sm"
+              className="bg-foreground text-primary-foreground hover:bg-foreground/90"
               onClick={() => setShowDeleteDialog(true)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -118,19 +123,19 @@ export function ReviewDetail() {
         }
       />
 
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <Button asChild variant="ghost" size="sm" className="mb-6">
+      <div className="relative mx-auto max-w-4xl px-6 py-8">
+        <Button asChild variant="ghost" size="sm" className="mb-6 bg-secondary/70 text-secondary-foreground hover:bg-secondary/90">
           <Link to="/reviews">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a reseñas
           </Link>
         </Button>
 
-        <Card>
+        <Card className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground">
           <CardHeader className="space-y-4">
             <div>
               <h2 className="text-2xl">{review.title}</h2>
-              <p className="mt-1 text-lg text-muted-foreground">
+              <p className="mt-1 text-lg text-primary-foreground/85">
                 {review.bookTitle}
               </p>
             </div>
@@ -143,17 +148,17 @@ export function ReviewDetail() {
                     className={`h-5 w-5 ${
                       i < review.rating
                         ? 'fill-amber-400 text-amber-400'
-                        : 'text-muted'
+                        : 'text-primary-foreground/40'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-primary-foreground/80">
                 {review.rating}/5
               </span>
             </div>
 
-            <div className="flex gap-4 text-sm text-muted-foreground">
+            <div className="flex gap-4 text-sm text-primary-foreground/75">
               <span>
                 Creada:{' '}
                 {new Date(review.createdAt).toLocaleDateString('es-ES', {
@@ -175,7 +180,7 @@ export function ReviewDetail() {
             </div>
           </CardHeader>
 
-          <CardContent className="prose prose-stone max-w-none">
+          <CardContent className="max-w-none">
             <div className="whitespace-pre-wrap text-base leading-relaxed">
               {review.content}
             </div>
@@ -185,16 +190,16 @@ export function ReviewDetail() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="border-primary-foreground/30 bg-primary text-primary-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar reseña?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-primary-foreground/80">
               Esta acción no se puede deshacer. La reseña será eliminada permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
+            <AlertDialogAction onClick={handleDelete} className="bg-foreground text-primary-foreground hover:bg-foreground/90">
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
