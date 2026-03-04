@@ -160,12 +160,21 @@ export function LoaderScreen({ onLoadComplete }: LoaderScreenProps) {
 
   return (
     <motion.div
-      className="fixed inset-0 bg-background z-50 flex items-center justify-center overflow-hidden"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
       initial={{ opacity: 1 }}
       animate={{ opacity: loadingComplete ? 0 : 1 }}
       transition={{ duration: 0.8, delay: loadingComplete ? 2.5 : 0 }}
-      style={{ pointerEvents: loadingComplete ? 'none' : 'auto' }}
+      style={{ pointerEvents: loadingComplete ? 'none' : 'auto', backgroundColor: '#f8f3ef' }}
     >
+      <picture className="absolute inset-0 z-0 flex h-full w-full items-center justify-center bg-[#f8f3ef]">
+        <source media="(max-width: 767px)" srcSet="/Fondo-Libro-mobile.png" />
+        <img
+          src="/Fondo-Libro-desktop.png"
+          alt="Fondo de carga"
+          className="h-auto w-auto max-h-full max-w-full object-contain"
+        />
+      </picture>
+
       {/* Fondo decorativo mejorado */}
       {!loadingComplete && (
       <div className="absolute inset-0">
@@ -521,27 +530,11 @@ export function LoaderScreen({ onLoadComplete }: LoaderScreenProps) {
         >
         
 
-          <motion.h1 
-            className="font-serif text-9xl text-primary mb-6 drop-shadow-2xl relative"
-            style={{ fontFamily: 'Crimson Text, serif' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ 
-              opacity: loadingComplete ? 1 : 0,
-              y: loadingComplete ? 0 : 20,
-              textShadow: loadingComplete ? [
-                '0 0 20px rgba(111, 16, 40, 0.3)',
-                '0 0 40px rgba(111, 16, 40, 0.5)',
-                '0 0 20px rgba(111, 16, 40, 0.3)',
-              ] : '0 0 0px rgba(111, 16, 40, 0)'
-            }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            LibRo
-          </motion.h1>
+          
 
           {loadingComplete && (
             <motion.div
-              className="flex justify-center gap-2 mt-6"
+              className="relative z-20 mt-6 flex justify-center gap-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
